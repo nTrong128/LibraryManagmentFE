@@ -1,115 +1,159 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { CardContent, CardFooter } from '@/components/ui/card'
 
-const router = useRouter()
+import * as z from 'zod'
+import { ref } from 'vue'
+import { toast } from '@/components/ui/toast'
+import { AutoForm } from '@/components/ui/auto-form'
+import { errorMessages } from 'vue/compiler-sfc'
 
-const firstName = ref('')
-const lastName = ref('')
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
+// Step 1 schema - account information
+const accountSchema = z.object({
+    username: z.string().min(1, { message: 'Vui lòng nhập tài khoản.' }),
+    password: z.string().min(1, { message: 'Vui lòng nhập mật khẩu.' }),
+    rePassword: z.string().min(1, { message: 'Vui lòng nhập lại mật khẩu.' })
+}).refine(
+    data => data.password === data.rePassword,
+    {
+        message: 'Mật khẩu không khớp.',
+        path: ['rePassword'],
+    }
+)
 
-const errors = ref<Record<'firstName' | 'lastName' | 'email' | 'password' | 'confirmPassword', string>>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+// Step 2 schema - personal information
+const personalSchema = z.object({
+    ho: z.string().min(1, { message: 'Vui lòng nhập họ.' }),
+    ten: z.string().min(1, { message: 'Vui lòng nhập tên.' }),
+    email: z.string().email({ message: 'Vui lòng nhập email.' }),
+    sdt: z.string().min(1, { message: 'Vui lòng nhập số điện thoại.' }),
+    diachi: z.string().min(1, { message: 'Vui lòng nhập địa chỉ.' })
 })
 
-const handleSignup = () => {
-    // Reset errors
-    Object.keys(errors.value).forEach(key => errors.value[key as keyof typeof errors.value] = '')
-
-    // Validate form
-    let isValid = true
-
-    if (!firstName.value.trim()) {
-        errors.value.firstName = 'First name is required'
-        isValid = false
-    }
-
-    if (!lastName.value.trim()) {
-        errors.value.lastName = 'Last name is required'
-        isValid = false
-    }
-
-    if (!email.value.trim()) {
-        errors.value.email = 'Email is required'
-        isValid = false
-    } else if (!/\S+@\S+\.\S+/.test(email.value)) {
-        errors.value.email = 'Email is invalid'
-        isValid = false
-    }
-
-    if (password.value.length < 8) {
-        errors.value.password = 'Password must be at least 8 characters long'
-        isValid = false
-    }
-
-    if (password.value !== confirmPassword.value) {
-        errors.value.confirmPassword = 'Passwords do not match'
-        isValid = false
-    }
-
-    if (isValid) {
-        console.log('Signup attempted with:', {
-            firstName: firstName.value,
-            lastName: lastName.value,
-            email: email.value,
-            password: password.value
-        })
-        // Implement your signup logic here
-        // After successful signup, you might want to redirect to a login page or dashboard
-        // router.push('/login')
-    }
+// Field configuration for step 1
+const accountFieldConfig = {
+    username: {
+        label: 'Tài khoản',
+        description: 'Nhập tên người dùng. Không được trùng với người dùng khác.',
+        inputProps: {
+            type: 'text',
+            placeholder: 'b2106819',
+        },
+        errorMessage: {
+            required: 'Vui lòng nhập tài khoản.',
+        }
+    },
+    password: {
+        label: 'Mật khẩu',
+        inputProps: {
+            type: 'password',
+            placeholder: '••••••••',
+        }
+    },
+    rePassword: {
+        label: 'Nhập lại mật khẩu',
+        inputProps: {
+            type: 'password',
+            placeholder: '••••••••',
+        }
+    },
 }
 
-const navigateToLogin = () => {
-    router.push('/login')
+// Field configuration for step 2
+const personalFieldConfig = {
+    ho: {
+        label: 'Họ',
+        inputProps: {
+            type: 'text',
+            placeholder: 'Nguyễn',
+        }
+    },
+    ten: {
+        label: 'Tên',
+        inputProps: {
+            type: 'text',
+            placeholder: 'Văn A',
+        }
+    },
+    email: {
+        label: 'Email',
+        inputProps: {
+            type: 'email',
+            placeholder: 'example@example.com',
+        }
+    },
+    sdt: {
+        label: 'Số điện thoại',
+        inputProps: {
+            type: 'tel',
+            placeholder: '0939 999 999',
+        }
+    },
+    diachi: {
+        label: 'Địa chỉ',
+        inputProps: {
+            type: 'text',
+            placeholder: 'Ninh Kiều, Cần Thơ',
+        }
+    },
 }
+
+// Form steps
+const currentStep = ref(1)
+
+const nextStep = () => {
+    currentStep.value += 1
+}
+
+const prevStep = () => {
+    currentStep.value -= 1
+}
+
+// Submit handler for final step
+function onSubmit(values: Record<string, any>) {
+    toast({
+        title: 'You submitted the following values:',
+        description: JSON.stringify(values, null, 2),
+    })
+    console.log(values)
+}
+
 </script>
-
 <template>
+    <div class="w-full mb-4 px-4">
+        <!-- Step Text (e.g., "Step 1/2") -->
+        <div class="flex justify-center items-center mb-2">
+            <span class="text-lg font-medium  text-gray-600">
+                Bước {{ currentStep }}/2
+            </span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full h-2 bg-gray-200 rounded overflow-hidden">
+            <div class="h-full bg-green-500 rounded transition-all duration-500" :style="{ width: currentStep === 1 ? '50%' : (currentStep === 2 ? '100%' : '0%') }"></div>
+        </div>
+    </div>
     <CardContent>
-        <form @submit.prevent="handleSignup" class="grid gap-4">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="grid gap-2">
-                    <Label for="firstName">First Name</Label>
-                    <Input id="firstName" v-model="firstName" type="text" required />
-                    <p v-if="errors.firstName" class="text-sm text-red-500">{{ errors.firstName }}</p>
-                </div>
-                <div class="grid gap-2">
-                    <Label for="lastName">Last Name</Label>
-                    <Input id="lastName" v-model="lastName" type="text" required />
-                    <p v-if="errors.lastName" class="text-sm text-red-500">{{ errors.lastName }}</p>
-                </div>
-            </div>
-            <div class="grid gap-2">
-                <Label for="email">Email</Label>
-                <Input id="email" v-model="email" type="email" placeholder="m@example.com" required />
-                <p v-if="errors.email" class="text-sm text-red-500">{{ errors.email }}</p>
-            </div>
-            <div class="grid gap-2">
-                <Label for="password">Password</Label>
-                <Input id="password" v-model="password" type="password" required />
-                <p v-if="errors.password" class="text-sm text-red-500">{{ errors.password }}</p>
-            </div>
-            <div class="grid gap-2">
-                <Label for="confirmPassword">Confirm Password</Label>
-                <Input id="confirmPassword" v-model="confirmPassword" type="password" required />
-                <p v-if="errors.confirmPassword" class="text-sm text-red-500">{{ errors.confirmPassword }}</p>
-            </div>
-            <Button type="submit" class="w-full bg-green-500 hover:bg-green-700">
-                Đăng ký
+        <!-- Step 1: Account Information -->
+        <AutoForm v-if="currentStep === 1" :schema="accountSchema" @submit="nextStep" :field-config="accountFieldConfig">
+            <Button class="w-full mt-4 bg-green-500 hover:bg-green-600" type="submit">
+                Tiếp theo
             </Button>
-        </form>
+        </AutoForm>
+
+        <!-- Step 2: Personal Information -->
+        <AutoForm v-if="currentStep === 2" :schema="personalSchema" @submit="onSubmit" :field-config="personalFieldConfig">
+            <div class="flex justify-between mt-4">
+                <Button class="bg-gray-500 hover:bg-gray-600" @click="prevStep">
+                    Quay lại
+                </Button>
+                <Button class="bg-green-500 hover:bg-green-600" type="submit">
+                    Đăng ký
+                </Button>
+            </div>
+        </AutoForm>
     </CardContent>
+
     <CardFooter>
         <div class="w-full text-center text-sm">
             Đã có tài khoản?
