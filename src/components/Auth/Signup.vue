@@ -7,6 +7,7 @@ import { ref } from 'vue'
 import { toast } from '@/components/ui/toast'
 import { AutoForm } from '@/components/ui/auto-form'
 import { errorMessages } from 'vue/compiler-sfc'
+import { useRouter } from 'vue-router'
 
 // Step 1 schema - account information
 const accountSchema = z.object({
@@ -98,6 +99,8 @@ const personalFieldConfig = {
     },
 }
 
+const loading = ref(false)
+
 // Form steps
 const currentStep = ref(1)
 
@@ -108,14 +111,19 @@ const nextStep = () => {
 const prevStep = () => {
     currentStep.value -= 1
 }
+const router = useRouter()
 
 // Submit handler for final step
-function onSubmit(values: Record<string, any>) {
+async function onSubmit(values: Record<string, any>) {
+    loading.value = true
+    await new Promise(resolve => setTimeout(resolve, 1000))
     toast({
-        title: 'You submitted the following values:',
+        title: 'Đăng ký tài khoản thành công.',
         description: JSON.stringify(values, null, 2),
     })
+    router.push('/')
     console.log(values)
+    loading.value = false
 }
 
 </script>
@@ -133,7 +141,7 @@ function onSubmit(values: Record<string, any>) {
             <div class="h-full bg-green-500 rounded transition-all duration-500" :style="{ width: currentStep === 1 ? '50%' : (currentStep === 2 ? '100%' : '0%') }"></div>
         </div>
     </div>
-    <CardContent>
+    <CardContent class="overflow-scroll max-h-[420px]">
         <!-- Step 1: Account Information -->
         <AutoForm v-if="currentStep === 1" :schema="accountSchema" @submit="nextStep" :field-config="accountFieldConfig">
             <Button class="w-full mt-4 bg-green-500 hover:bg-green-600" type="submit">
@@ -144,10 +152,10 @@ function onSubmit(values: Record<string, any>) {
         <!-- Step 2: Personal Information -->
         <AutoForm v-if="currentStep === 2" :schema="personalSchema" @submit="onSubmit" :field-config="personalFieldConfig">
             <div class="flex justify-between mt-4">
-                <Button class="bg-gray-500 hover:bg-gray-600" @click="prevStep">
+                <Button :disabled="loading" class="bg-gray-500 hover:bg-gray-600" @click="prevStep">
                     Quay lại
                 </Button>
-                <Button class="bg-green-500 hover:bg-green-600" type="submit">
+                <Button :disabled="loading" class="bg-green-500 hover:bg-green-600" type="submit">
                     Đăng ký
                 </Button>
             </div>
