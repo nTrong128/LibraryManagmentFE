@@ -11,8 +11,8 @@
 <script setup lang="ts">
 import { computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import BookTable from '@/components/bookManagmenet/BookTable.vue';
-import AddBookModal from '@/components/bookManagmenet/AddBookModal.vue';
+import BookTable from '@/components/Admin/BookManagement/BookTable.vue';
+import AddBookModal from '@/components/Admin/BookManagement/AddBookModal.vue';
 import { useBookStore } from '@/stores/bookStore';
 
 const props = defineProps<{
@@ -33,7 +33,7 @@ const changePage = (newPage: number) => {
     router.push({ name: 'books', query: { page: newPage.toString() } });
 };
 
-watch(validatedPage, (newPage) => {
+watch(validatedPage, (newPage: number) => {
     if (newPage !== props.page) {
         router.replace({ query: { page: newPage.toString() } });
     }

@@ -23,8 +23,8 @@
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody v-auto-animate="{ duration: 200 }">
-          <TableRow v-for="(book, index) in books" :key="book.MaSach">
+        <TableBody>
+          <TableRow class="" v-for="(book, index) in books" :key="book.MaSach">
             <TableCell>{{ (currentPage - 1) * 5 + index + 1 }}</TableCell>
             <TableCell>{{ book.TenSach }}</TableCell>
             <TableCell>{{ book.SoQuyen }}</TableCell>
@@ -43,8 +43,6 @@
           </TableRow>
         </TableBody>
       </Table>
-
-
     </CardContent>
     <CardFooter class="flex justify-end">
       <!-- Pagination controls -->
@@ -85,11 +83,10 @@ import { SquarePen, Trash2 } from 'lucide-vue-next'
 import { useBookStore } from '@/stores/bookStore'
 import { useNhaXuatBanStore } from '@/stores/nhaXuatBanStore'
 import Spinner from '@/components/Spinner.vue'
-import EditBookModal from '@/components/bookManagmenet/EditBookModal.vue'
-import DeleteBookModal from '@/components/bookManagmenet/DeleteBookModal.vue'
+import EditBookModal from '@/components/Admin/BookManagement/EditBookModal.vue'
+import DeleteBookModal from '@/components/Admin/BookManagement/DeleteBookModal.vue'
 import Pagination from '@/components/Pagination.vue'
 import type { Sach } from '@/types/models'
-
 
 
 
