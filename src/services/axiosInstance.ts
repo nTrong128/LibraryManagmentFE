@@ -8,6 +8,7 @@ const axiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json", // Set default headers if needed
   },
+  withCredentials: true, // Optional: enable cross-site Access-Control
 });
 
 // Optional: Add an interceptor for requests

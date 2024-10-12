@@ -1,5 +1,8 @@
 import {createRouter, createWebHistory} from "vue-router";
 
+import {Role} from "@/types/models";
+import {useAuthStore} from "@/stores/authStore";
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -7,11 +10,12 @@ const router = createRouter({
       path: "/dashboard",
       name: "adminDashboard",
       component: () => import("@/views/admin/AdminView.vue"),
+      meta: {requiresAuth: true, role: [Role.ADMIN, Role.NHANVIEN]},
       children: [
         {
           path: "/dashboard/",
           name: "dashboard",
-          component: () => import("@/views/admin/Dashboard.vue"),
+          component: () => import("@/views/admin/DashBoard.vue"),
         },
         {
           path: "/dashboard/applications",
@@ -52,6 +56,37 @@ const router = createRouter({
       component: () => import("@/views/user/AboutView.vue"),
     },
   ],
+});
+
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore();
+
+  if (!authStore.isAuthenticated) {
+    await authStore.checkingAuth();
+  }
+
+  if (to.meta.requiresAuth) {
+    const allowedRoles = to.meta.role as Role[];
+    if (allowedRoles && !allowedRoles.includes(authStore.role!)) {
+      if (authStore.isDocGia) {
+        return next({path: "/"});
+      }
+    }
+
+    if (!authStore.isAuthenticated) {
+      return next({path: "/login"});
+    }
+  }
+
+  if (to.path === "/login" && authStore.isAuthenticated) {
+    if (authStore.isDocGia) {
+      return next({path: "/"});
+    } else if (authStore.isNhanVien) {
+      return next({path: "/dashboard"});
+    }
+  }
+
+  next();
 });
 
 export default router;
