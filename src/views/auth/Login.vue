@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import AuthWrapper from '@/components/Auth/AuthWrapper.vue'
 import LoginForm from '@/components/Auth/Login.vue'
+
+
 </script>
 
 <template>

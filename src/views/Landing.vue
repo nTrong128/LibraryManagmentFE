@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { BookOpen, Search, Clock, Users } from 'lucide-vue-next'
 import landingHeader from '@/components/header/landingHeader.vue'
+import loggedInHeader from '@/components/header/loggedInHeader.vue'
+import { useAuthStore } from '@/stores/authStore'
 
-const router = useRouter()
+
 const searchQuery = ref('')
 
 const handleSearch = () => {
@@ -16,25 +18,23 @@ const handleSearch = () => {
     // router.push({ name: 'SearchResults', query: { q: searchQuery.value } })
 }
 
-const navigateToLogin = () => {
-    router.push('/login')
-}
-
-const navigateToSignup = () => {
-    router.push('/signup')
-}
-
 const featuredBooks = [
     { id: 1, title: 'To Kill a Mockingbird', author: 'Harper Lee', cover: 'https://m.media-amazon.com/images/I/81aY1lxk+9L._AC_UF1000,1000_QL80_.jpg' },
     { id: 2, title: '1984', author: 'George Orwell', cover: 'https://m.media-amazon.com/images/I/71rpa1-kyvL._AC_UF1000,1000_QL80_.jpg' },
     { id: 3, title: 'Pride and Prejudice', author: 'Jane Austen', cover: 'https://m.media-amazon.com/images/I/81Scutrtj4L._UF1000,1000_QL80_.jpg' },
     { id: 4, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', cover: 'https://m.media-amazon.com/images/I/51jPo0RDFUL._SL500_.jpg' },
 ]
+
+const authStore = useAuthStore()
+
+const user = authStore.user
+
 </script>
 
 <template>
     <div class="min-h-screen bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800">
-        <landingHeader />
+        <loggedInHeader v-if="authStore.isAuthenticated" :user="user" />
+        <landingHeader v-else />
 
         <main class="container mx-auto px-6 py-8">
             <section class="text-center mb-16">
@@ -90,17 +90,17 @@ const featuredBooks = [
                 </div>
             </section>
 
-            <section class="text-center">
+            <section v-if="!authStore.isAuthenticated" class="text-center">
                 <h2 class="text-2xl font-semibold mb-4">Ready to Start Reading?</h2>
                 <p class="mb-6">Join MyLibrary today and unlock a world of knowledge and imagination.</p>
-                <Button size="lg" @click="navigateToSignup">Sign Up Now</Button>
+                <router-link to="/signup"><Button size="lg">Sign Up Now</Button></router-link>
             </section>
         </main>
 
         <footer class="bg-white dark:bg-gray-800 shadow mt-16">
             <div class="container mx-auto px-6 py-4">
                 <p class="text-center text-gray-600 dark:text-gray-400">
-                    © 2024 MyLibrary. All rights reserved.
+                    © B2106819 - Lê Nhật Trọng - 2024
                 </p>
             </div>
         </footer>
