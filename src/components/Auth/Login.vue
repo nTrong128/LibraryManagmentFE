@@ -5,6 +5,9 @@ import { CardContent, CardFooter } from '@/components/ui/card'
 import * as z from 'zod'
 import { toast } from '@/components/ui/toast'
 import { AutoForm } from '@/components/ui/auto-form'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
+import { onMounted } from 'vue'
 
 
 const schema = z.object({
@@ -12,14 +15,18 @@ const schema = z.object({
     password: z.string().min(1, { message: 'Vui lòng nhập mật khẩu.' }),
 })
 
+const authStore = useAuthStore()
 
-function onSubmit(values: Record<string, any>) {
+async function onSubmit(values: { username: string; password: string }) {
     toast({
         title: 'You submitted the following values:',
         description: JSON.stringify(values, null, 2),
     })
     console.log(values)
+    await authStore.login(values)
+
 }
+
 
 
 </script>
@@ -33,6 +40,7 @@ function onSubmit(values: Record<string, any>) {
                 inputProps: {
                     type: 'text',
                     placeholder: 'b2106819',
+                    name: 'username',
                 },
             },
             password: {
@@ -40,6 +48,7 @@ function onSubmit(values: Record<string, any>) {
                 inputProps: {
                     type: 'password',
                     placeholder: '********',
+                    name: 'password',
                 }
             }
         }">

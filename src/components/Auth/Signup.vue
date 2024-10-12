@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button'
 import { CardContent, CardFooter } from '@/components/ui/card'
 
 import * as z from 'zod'
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { toast } from '@/components/ui/toast'
 import { AutoForm } from '@/components/ui/auto-form'
-import { errorMessages } from 'vue/compiler-sfc'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 
 // Step 1 schema - account information
 const accountSchema = z.object({
@@ -24,11 +24,10 @@ const accountSchema = z.object({
 
 // Step 2 schema - personal information
 const personalSchema = z.object({
-    ho: z.string().min(1, { message: 'Vui lòng nhập họ.' }),
-    ten: z.string().min(1, { message: 'Vui lòng nhập tên.' }),
+    HoTen: z.string().min(1, { message: 'Vui lòng nhập họ và tên.' }),
     email: z.string().email({ message: 'Vui lòng nhập email.' }),
-    sdt: z.string().min(1, { message: 'Vui lòng nhập số điện thoại.' }),
-    diachi: z.string().min(1, { message: 'Vui lòng nhập địa chỉ.' })
+    SoDienThoai: z.string().min(1, { message: 'Vui lòng nhập số điện thoại.' }),
+    DiaChi: z.string().min(1, { message: 'Vui lòng nhập địa chỉ.' })
 })
 
 // Field configuration for step 1
@@ -39,16 +38,15 @@ const accountFieldConfig = {
         inputProps: {
             type: 'text',
             placeholder: 'b2106819',
+            name: 'username',
         },
-        errorMessage: {
-            required: 'Vui lòng nhập tài khoản.',
-        }
     },
     password: {
         label: 'Mật khẩu',
         inputProps: {
             type: 'password',
             placeholder: '••••••••',
+            name: 'password',
         }
     },
     rePassword: {
@@ -56,24 +54,19 @@ const accountFieldConfig = {
         inputProps: {
             type: 'password',
             placeholder: '••••••••',
+            name: 'rePassword',
         }
     },
 }
 
 // Field configuration for step 2
 const personalFieldConfig = {
-    ho: {
-        label: 'Họ',
-        inputProps: {
-            type: 'text',
-            placeholder: 'Nguyễn',
-        }
-    },
-    ten: {
+    HoTen: {
         label: 'Tên',
         inputProps: {
             type: 'text',
             placeholder: 'Văn A',
+            name: 'HoTen',
         }
     },
     email: {
@@ -81,52 +74,83 @@ const personalFieldConfig = {
         inputProps: {
             type: 'email',
             placeholder: 'example@example.com',
+            name: 'email',
         }
     },
-    sdt: {
+    SoDienThoai: {
         label: 'Số điện thoại',
         inputProps: {
             type: 'tel',
             placeholder: '0939 999 999',
+            name: 'SoDienThoai',
         }
     },
-    diachi: {
+    DiaChi: {
         label: 'Địa chỉ',
         inputProps: {
             type: 'text',
             placeholder: 'Ninh Kiều, Cần Thơ',
+            name: 'DiaChi',
         }
     },
 }
+
+// Reactive object to store form data across steps
+const formData = ref({
+    username: '',
+    password: '',
+    rePassword: '',
+    HoTen: '',
+    email: '',
+    SoDienThoai: '',
+    DiaChi: '',
+})
 
 const loading = ref(false)
 
 // Form steps
 const currentStep = ref(1)
 
-const nextStep = () => {
+const nextStep = (values: {
+    username: string
+    password: string
+    rePassword: string
+}) => {
+    Object.assign(formData.value, values) // Merge Step 1 values into formData
     currentStep.value += 1
 }
 
 const prevStep = () => {
     currentStep.value -= 1
 }
-const router = useRouter()
+
+const authStore = useAuthStore()
 
 // Submit handler for final step
-async function onSubmit(values: Record<string, any>) {
+async function onSubmit(values: {
+    HoTen: string
+    email: string
+    SoDienThoai: string
+    DiaChi: string
+}) {
+    Object.assign(formData.value, values) // Merge Step 2 values into formData
+
     loading.value = true
     await new Promise(resolve => setTimeout(resolve, 1000))
+
     toast({
         title: 'Đăng ký tài khoản thành công.',
-        description: JSON.stringify(values, null, 2),
+        description: JSON.stringify(formData.value, null, 2),
     })
-    router.push('/')
-    console.log(values)
+
+    await authStore.signup(formData.value)
+    console.log(formData.value)
+
     loading.value = false
 }
 
 </script>
+
 <template>
     <div class="w-full mb-4 px-4">
         <!-- Step Text (e.g., "Step 1/2") -->
