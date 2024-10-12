@@ -62,6 +62,26 @@ export interface NhanVien {
   deleted: boolean;
 }
 
+export type TaiKhoan = {
+  id: string;
+  username: string;
+  email: string;
+  role: Role;
+  docGiaId: string | null;
+  nhanVienId: string | null;
+  resetPasswordToken: string | null;
+  resetPasswordExpiresAt: string | null;
+  deleted: boolean;
+  createAt: string;
+  updateAt: string;
+};
+
+export enum Role {
+  ADMIN = "ADMIN",
+  DOCGIA = "DOCGIA",
+  NHANVIEN = "NHANVIEN",
+}
+
 // Enum for BorrowStatus
 export enum BorrowStatus {
   PENDING = "PENDING",
