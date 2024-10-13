@@ -18,6 +18,7 @@ export interface Sach {
   TenSach: string;
   DonGia: string | number | undefined;
   SoQuyen: number;
+  image: string;
   NamXuatBan: number;
   MaNXB: string;
   NguonGoc: string;

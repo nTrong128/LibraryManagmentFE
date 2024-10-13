@@ -2,6 +2,8 @@ import {defineStore} from "pinia";
 import axiosInstance, {type ApiResponse} from "@/services/axiosInstance";
 import {type Sach} from "@/types/models";
 
+const CLOUDNAME = import.meta.env.VITE_CLOUDINARY_NAME;
+
 interface State<T> {
   items: T[];
   selectedItem: T | null;
@@ -11,6 +13,9 @@ interface State<T> {
   pageSize: number;
   totalItems: number;
   totalPages: number;
+  search: string; // Add search field
+  sortBy: string; // Add sortBy field
+  sortOrder: string; // Add sortOrder field
 }
 
 export const useBookStore = defineStore("book", {
@@ -19,25 +24,46 @@ export const useBookStore = defineStore("book", {
     selectedItem: null,
     loading: false,
     error: null,
-    currentPage: 1, // Start with the first page
-    pageSize: 5, // Default page size
-    totalItems: 0, // Total number of items
-    totalPages: 0, // Total number of pages
+    currentPage: 1,
+    pageSize: 5,
+    totalItems: 0,
+    totalPages: 0,
+    search: "", // Default empty search
+    sortBy: "MaSach", // Default sorting by MaSach
+    sortOrder: "asc", // Default ascending order
   }),
   actions: {
-    // Fetch all books
-    async fetchBooks(page = 1, pageSize = 5) {
+    // Fetch all books with search, sort, and order parameters
+    async fetchBooks(page = 1, pageSize = 5, search = "", sortBy = "MaSach", sortOrder = "asc") {
       this.loading = true;
       this.error = null;
       this.currentPage = page;
       this.pageSize = pageSize;
+      this.search = search;
+      this.sortBy = sortBy;
+      this.sortOrder = sortOrder;
+
       try {
+        const params: Record<string, any> = {
+          page: this.currentPage,
+          pageSize: this.pageSize,
+        };
+
+        if (search && search !== "") {
+          params.search = search;
+        }
+
+        if (sortBy && sortBy !== "MaSach") {
+          params.sortBy = sortBy;
+        }
+
+        if (sortOrder && sortOrder !== "asc") {
+          params.sortOrder = sortOrder;
+        }
         const response = await axiosInstance.get<ApiResponse<Sach[]>>("/sach", {
-          params: {
-            page: this.currentPage,
-            pageSize: this.pageSize,
-          },
+          params: params,
         });
+
         this.items = response.data.data;
         this.totalItems = response.data.meta?.totalItems || 0;
         this.totalPages = response.data.meta?.totalPages || 0;
@@ -45,13 +71,10 @@ export const useBookStore = defineStore("book", {
         this.error = error.response?.data?.message || "Có lỗi xảy ra khi tải dữ liệu!!!";
         console.error(error);
       } finally {
-        // FIXME: Remove this line in production
-        await new Promise((resolve) => setTimeout(resolve, 0)); // Simulate loading time
+        // Simulate loading time for development, remove in production
+        await new Promise((resolve) => setTimeout(resolve, 0));
         this.loading = false;
       }
-    },
-    isValidPage(page: number): boolean {
-      return page >= 1 && page <= this.totalPages;
     },
 
     // Fetch a single book by ID
@@ -69,16 +92,53 @@ export const useBookStore = defineStore("book", {
       }
     },
 
+    async uploadImage(file: File): Promise<string> {
+      const url = `https://api.cloudinary.com/v1_1/${CLOUDNAME}/upload`;
+      const formData = new FormData();
+      formData.append("tags", "browser_upload");
+      formData.append("upload_preset", "libraryManagement");
+      formData.append("folder", "libraryManagement");
+      formData.append("file", file);
+
+      try {
+        const response = await axiosInstance.post(url, formData, {
+          withCredentials: false,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        console.log("Uploaded image response:", response.data);
+        if (response.data.secure_url) {
+          return response.data.secure_url;
+        } else {
+          throw new Error("Upload failed");
+        }
+      } catch (error: any) {
+        console.error("Error uploading the file:", error);
+        throw new Error(error.response?.data?.message || "Failed to upload image");
+      }
+    },
+
     // Create a new book
-    async createBook(newBook: Omit<Sach, "MaSach" | "updateAt" | "createAt" | "deleted">) {
+    async createBook(
+      newBook: Omit<Sach, "MaSach" | "updateAt" | "createAt" | "deleted">,
+      imageFile?: File
+    ) {
       this.loading = true;
       this.error = null;
       try {
+        if (imageFile) {
+          const imageUrl = await this.uploadImage(imageFile);
+          console.log("Uploaded image URL:", imageUrl);
+          newBook.image = imageUrl;
+        }
         const response = await axiosInstance.post<ApiResponse<Sach>>("/sach", newBook);
         this.items.push(response.data.data);
+        return response.data.data;
       } catch (error: any) {
         this.error = error.response?.data?.message || "Failed to create new book";
         console.error(error);
+        throw error;
       } finally {
         this.loading = false;
       }
@@ -117,6 +177,9 @@ export const useBookStore = defineStore("book", {
       } finally {
         this.loading = false;
       }
+    },
+    isValidPage(page: number): boolean {
+      return page >= 1 && page <= this.totalPages;
     },
 
     // Methods to handle local state

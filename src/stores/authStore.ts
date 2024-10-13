@@ -80,7 +80,6 @@ export const useAuthStore = defineStore("auth", {
         const response = await axiosInstance.get<ApiResponse<TaiKhoan>>("/auth/check-auth");
         this.user = response.data.data;
         await this.loadPersonalInfo(this.user.docGiaId || this.user.nhanVienId!, this.user.role);
-        this.redirectToHome(router);
       } catch {
         this.clearUserData();
       } finally {

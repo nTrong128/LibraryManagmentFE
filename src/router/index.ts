@@ -78,7 +78,7 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  if (to.path === "/login" && authStore.isAuthenticated) {
+  if ((to.path === "/login" || to.path === "/signup") && authStore.isAuthenticated) {
     if (authStore.isDocGia) {
       return next({path: "/"});
     } else if (authStore.isNhanVien) {
