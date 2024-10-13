@@ -10,41 +10,7 @@
     </div>
     <CardContent v-else>
       <Table>
-        <!-- <TableHeader>
-          <TableRow>
-            <TableHead @click="sort('MaSach')">
-              STT
-              <SortIcon :active="sortBy === 'MaSach'" :ascending="sortOrder === 'asc'" />
-            </TableHead>
-            <TableHead @click="sort('TenSach')">
-              Tên sách
-              <SortIcon :active="sortBy === 'TenSach'" :ascending="sortOrder === 'asc'" />
-            </TableHead>
-            <TableHead @click="sort('SoQuyen')">
-              Số lượng
-              <SortIcon :active="sortBy === 'SoQuyen'" :ascending="sortOrder === 'asc'" />
-            </TableHead>
-            <TableHead @click="sort('DonGia')">
-              Đơn giá
-              <SortIcon :active="sortBy === 'DonGia'" :ascending="sortOrder === 'asc'" />
-            </TableHead>
-            <TableHead @click="sort('NguonGoc')">
-              Nguồn gốc
-              <SortIcon :active="sortBy === 'NguonGoc'" :ascending="sortOrder === 'asc'" />
-            </TableHead>
-            <TableHead>Ảnh bìa</TableHead>
-            <TableHead @click="sort('MaNXB')">
-              Nhà xuất bản
-              <SortIcon :active="sortBy === 'MaNXB'" :ascending="sortOrder === 'asc'" />
-            </TableHead>
-            <TableHead @click="sort('NamXuatBan')">
-              Năm xuất bản
-              <SortIcon :active="sortBy === 'NamXuatBan'" :ascending="sortOrder === 'asc'" />
-            </TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
 
-        </TableHeader> -->
         <TableHead v-for="column in columns" :key="column.key">
           <TableCell @click="column.sortable && sort(column.key)" class="cursor-pointer">
             {{ column.label }}
