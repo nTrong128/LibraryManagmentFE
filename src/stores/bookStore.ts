@@ -13,9 +13,9 @@ interface State<T> {
   pageSize: number;
   totalItems: number;
   totalPages: number;
-  search: string; // Add search field
-  sortBy: string; // Add sortBy field
-  sortOrder: string; // Add sortOrder field
+  search: string;
+  sortBy: string;
+  sortOrder: string;
 }
 
 export const useBookStore = defineStore("book", {
@@ -28,38 +28,26 @@ export const useBookStore = defineStore("book", {
     pageSize: 5,
     totalItems: 0,
     totalPages: 0,
-    search: "", // Default empty search
-    sortBy: "MaSach", // Default sorting by MaSach
-    sortOrder: "asc", // Default ascending order
+    search: "",
+    sortBy: "MaSach",
+    sortOrder: "asc",
   }),
   actions: {
-    // Fetch all books with search, sort, and order parameters
-    async fetchBooks(page = 1, pageSize = 5, search = "", sortBy = "MaSach", sortOrder = "asc") {
+    async fetchBooks(page = 1, pageSize = 5) {
       this.loading = true;
       this.error = null;
       this.currentPage = page;
       this.pageSize = pageSize;
-      this.search = search;
-      this.sortBy = sortBy;
-      this.sortOrder = sortOrder;
 
       try {
         const params: Record<string, any> = {
           page: this.currentPage,
           pageSize: this.pageSize,
+          search: this.search,
+          sortBy: this.sortBy,
+          sortOrder: this.sortOrder,
         };
 
-        if (search && search !== "") {
-          params.search = search;
-        }
-
-        if (sortBy && sortBy !== "MaSach") {
-          params.sortBy = sortBy;
-        }
-
-        if (sortOrder && sortOrder !== "asc") {
-          params.sortOrder = sortOrder;
-        }
         const response = await axiosInstance.get<ApiResponse<Sach[]>>("/sach", {
           params: params,
         });
@@ -72,7 +60,7 @@ export const useBookStore = defineStore("book", {
         console.error(error);
       } finally {
         // Simulate loading time for development, remove in production
-        await new Promise((resolve) => setTimeout(resolve, 0));
+
         this.loading = false;
       }
     },
@@ -191,6 +179,13 @@ export const useBookStore = defineStore("book", {
     },
     clearSelectedBook() {
       this.selectedItem = null;
+    },
+    setSort(sortBy: string, sortOrder: string) {
+      this.sortBy = sortBy;
+      this.sortOrder = sortOrder;
+    },
+    setSearch(search: string) {
+      this.search = search;
     },
   },
   getters: {

@@ -43,6 +43,7 @@ export const useAuthStore = defineStore("auth", {
       try {
         const user = await this.authenticate("/auth/signup", credentials);
         await this.loadPersonalInfo(user.docGiaId!, user.role);
+        this.redirectToHome(router);
       } catch (error) {
         this.handleError(error, "Có lỗi xảy ra khi đăng ký tài khoản!!!");
       } finally {
@@ -80,8 +81,9 @@ export const useAuthStore = defineStore("auth", {
         const response = await axiosInstance.get<ApiResponse<TaiKhoan>>("/auth/check-auth");
         this.user = response.data.data;
         await this.loadPersonalInfo(this.user.docGiaId || this.user.nhanVienId!, this.user.role);
-      } catch {
+      } catch (error) {
         this.clearUserData();
+        console.log("authStore checkingAuth error:", error);
       } finally {
         this.setLoading(false);
       }
