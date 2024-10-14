@@ -5,28 +5,32 @@
         Danh sách sách
       </CardTitle>
     </CardHeader>
-    <div v-if="loading" class="flex justify-center my-40">
-      <Spinner class="h-8 w-8" />
-    </div>
-    <CardContent v-else>
-      <Table>
 
-        <TableHead v-for="column in columns" :key="column.key">
-          <TableCell @click="column.sortable && sort(column.key)" class="cursor-pointer">
-            {{ column.label }}
-            <SortIcon v-if="column.sortable" :active="sortBy === column.key" :ascending="sortOrder === 'asc'" />
-          </TableCell>
-        </TableHead>
+    <CardContent>
+      <div v-if="bookStore.loading" class="flex justify-center my-40">
+        <Spinner class="h-8 w-8" />
+      </div>
+      <Table v-else>
+
+        <TableHeader>
+          <TableRow>
+            <TableHead v-for="column in columns" :key="column.key" class="cursor-pointer" @click="column.sortable && sort(column.key)">
+              {{ column.label }}
+              <SortIcon v-if="column.sortable" :active="sortBy === column.key" :ascending="sortOrder === 'asc'" />
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+
 
         <TableBody>
           <TableRow class="" v-for="(book, index) in books" :key="book.MaSach">
             <TableCell>{{ (currentPage - 1) * pageSize + index + 1 }}</TableCell>
-            <TableCell>{{ book.TenSach }}</TableCell>
+            <TableCell class="text-clip overflow-hidden ...">{{ book.TenSach }}</TableCell>
             <TableCell>{{ book.SoQuyen }}</TableCell>
             <TableCell>{{ book.DonGia }} VNĐ</TableCell>
-            <TableCell>{{ book.NguonGoc }}</TableCell>
+            <TableCell class="text-clip overflow-hidden ...">{{ book.NguonGoc }}</TableCell>
             <TableCell>
-              <img v-if="book.image" :src="book.image" alt="Book cover" class="h-36 w-36 object-cover rounded-lg" />
+              <img v-if="book.image" :src="book.image" loading="lazy" alt="Book cover" class="h-24 w-h-24 object-cover aspect-square rounded-sm" />
               <p v-else>trống</p>
             </TableCell>
             <TableCell>{{ getPublisherName(book.MaNXB) }}</TableCell>
@@ -45,14 +49,13 @@
         </TableBody>
       </Table>
     </CardContent>
-    <CardFooter class="flex justify-end">
+    <CardFooter class="flex justify-between">
       <!-- Pagination controls -->
-      <div class="flex items-center justify-between mt-4">
-        <div class="text-sm text-gray-700 dark:text-gray-400">
-          Showing {{ startIndex }} to {{ endIndex }} of {{ totalItems }} entries
-        </div>
-        <Pagination :total-pages="totalPages" :current-page="currentPage" @change="changePage" />
+      <div class="text-sm text-gray-700 dark:text-gray-400">
+        Sách {{ startIndex }} - {{ endIndex }} trong tổng số {{ totalItems }}
       </div>
+      <Pagination v-if="totalPages > 1" :total-pages="totalPages" :current-page="currentPage" @change="changePage" />
+
     </CardFooter>
   </Card>
 
@@ -64,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table'
@@ -82,7 +85,7 @@ import type { Sach } from '@/types/models'
 
 const bookStore = useBookStore()
 const publisherStore = useNhaXuatBanStore()
-const { items: books, loading, error, currentPage, totalItems, totalPages, pageSize } = storeToRefs(bookStore)
+const { items: books, currentPage, totalItems, totalPages, pageSize } = storeToRefs(bookStore)
 const publishers = computed(() => publisherStore.allNhaXuatBans)
 
 const isEditModalOpen = ref(false)
@@ -90,14 +93,6 @@ const isDeleteModalOpen = ref(false)
 
 const startIndex = computed(() => (currentPage.value - 1) * pageSize.value + 1)
 const endIndex = computed(() => Math.min(currentPage.value * pageSize.value, totalItems.value))
-
-const props = defineProps<{
-  page: number
-}>()
-
-// Sorting state
-const sortBy = ref('MaSach')
-const sortOrder = ref<'asc' | 'desc'>('asc')
 
 const columns = [
   { key: 'MaSach', label: 'STT', sortable: true },
@@ -108,24 +103,20 @@ const columns = [
   { key: 'image', label: 'Ảnh bìa', sortable: false },
   { key: 'MaNXB', label: 'Nhà xuất bản', sortable: true },
   { key: 'NamXuatBan', label: 'Năm xuất bản', sortable: true },
-  { key: 'actions', label: '', sortable: false },
 ]
 
+const sortBy = ref('MaSach')
+const sortOrder = ref<'asc' | 'desc'>('asc')
 
-
-// Sorting function
-const sort = (column: string) => {
+const sort = async (column: string) => {
   if (sortBy.value === column) {
     sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
   } else {
     sortBy.value = column
     sortOrder.value = 'asc'
   }
-  bookStore.fetchBooks(currentPage.value, pageSize.value,
-    '',
-    sortBy.value,
-    sortOrder.value,
-  )
+  bookStore.setSort(sortBy.value, sortOrder.value)
+  await refreshBooks()
 }
 
 const openEditModal = (book: Sach) => {
@@ -157,29 +148,17 @@ const getPublisherName = (MaNXB: string) => {
 }
 
 const changePage = async (page: number) => {
-  await bookStore.fetchBooks(page, pageSize.value,
-    "",
-    sortBy.value,
-    sortOrder.value,
-  )
+  bookStore.currentPage = page
+  await refreshBooks()
+
 }
 
 const refreshBooks = async () => {
-  await bookStore.fetchBooks(currentPage.value, pageSize.value,
-    "",
-    sortBy.value,
-    sortOrder.value,
-  )
+  await bookStore.fetchBooks(currentPage.value)
 }
 
-watch(() => props.page, (newPage) => {
-  refreshBooks()
-
-
-}, { immediate: true })
-
 onMounted(() => {
+  bookStore.fetchBooks()
   publisherStore.fetchAllNhaXuatBans()
-  refreshBooks()
 })
 </script>

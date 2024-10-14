@@ -2,9 +2,9 @@
     <Dialog :open="isOpen" @update:open="handleOpenChange">
         <DialogContent class="sm:max-w-[425px]">
             <DialogHeader>
-                <DialogTitle>Edit Book</DialogTitle>
+                <DialogTitle>Cập nhật sách</DialogTitle>
                 <DialogDescription>
-                    Make changes to the book details here. Click save when you're done.
+                    Cập nhật thông tin sách, nhấn cập nhật để lưu thay đổi
                 </DialogDescription>
             </DialogHeader>
             <form @submit.prevent="handleSubmit">
@@ -27,7 +27,7 @@
                     </div>
                     <div class="grid grid-cols-4 items-center gap-4">
                         <Label for="publisher" class="text-right">Nhà xuất bản</Label>
-                        <Select v-auto-animate="{ duration: 200 }" name="selectPublisher" v-model="editedBook.MaNXB" required>
+                        <Select name="selectPublisher" v-model="editedBook.MaNXB" required>
                             <SelectTrigger id="publisher" class="col-span-3">
                                 <SelectValue placeholder="Chọn nhà xuất bản" />
                             </SelectTrigger>
@@ -45,7 +45,7 @@
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button type="submit" :disabled="loading">
+                    <Button type="submit" :disabled="loading" class="bg-green-500 hover:bg-green-700">
                         {{ loading ? 'Đang lưu thay đổi ...' : 'Cập nhật' }}
                     </Button>
                 </DialogFooter>
