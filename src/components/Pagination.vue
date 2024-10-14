@@ -72,7 +72,7 @@ const paginationRange = computed(() => {
         </Button>
         <Button v-for="page in paginationRange" :key="page" variant="outline" :class="[
             'h-9 w-9 p-0',
-            page === currentPage ? 'bg-primary text-primary-foreground hover:bg-primary/90 dark:text-black' : ''
+            page === currentPage ? 'bg-primary text-primary-foreground hover:text-white hover:bg-primary/90 dark:text-black' : ''
         ]" :disabled="page === DOTS" @click="page !== DOTS ? emit('change', page) : null">
             <span v-if="page === DOTS">
                 <MoreHorizontal class="h-4 w-4" />
