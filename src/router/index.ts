@@ -26,15 +26,32 @@ const router = createRouter({
           path: "/dashboard/books/:page?",
           name: "books",
           component: () => import("@/views/admin/BookManagement.vue"),
-          props: (route) => ({page: parseInt(route.query.page as string) || 1}),
         },
       ],
     },
     {
       path: "/",
-      name: "landingPage",
-      component: () => import("@/views/Landing.vue"),
+      name: "userDashboard",
+      component: () => import("@/views/user/UserView.vue"),
+      children: [
+        {
+          path: "/",
+          name: "landingPage",
+          component: () => import("@/views/Landing.vue"),
+        },
+        {
+          path: "/books",
+          name: "booksBrowse",
+          component: () => import("@/views/user/BookBrowse.vue"),
+        },
+        {
+          path: "/borrow",
+          name: "borrow",
+          component: () => import("@/views/user/BookBrowse.vue"),
+        },
+      ],
     },
+
     {
       path: "/login",
       name: "login",
@@ -78,7 +95,10 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  if ((to.path === "/login" || to.path === "/signup") && authStore.isAuthenticated) {
+  if (
+    (to.path === "/login" || to.path === "/signup" || to.path === "/forgot-password") &&
+    authStore.isAuthenticated
+  ) {
     if (authStore.isDocGia) {
       return next({path: "/"});
     } else if (authStore.isNhanVien) {

@@ -1,8 +1,7 @@
 // Types for Docgia
 export interface Docgia {
   MaDocGia: string;
-  HoLot: string;
-  Ten: string;
+  HoTen: string;
   NgaySinh: string;
   Phai: boolean;
   DiaChi: string;
@@ -53,7 +52,7 @@ export interface MuonSach {
 // Types for NhanVien
 export interface NhanVien {
   MSNV: string;
-  HoTenNV: string;
+  HoTen: string;
   Password: string;
   ChucVu: string;
   DiaChi: string;
