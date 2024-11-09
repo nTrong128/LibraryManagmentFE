@@ -27,6 +27,7 @@ export const useAuthStore = defineStore("auth", {
 
       try {
         const user = await this.authenticate("/auth/login", credentials);
+
         await this.loadPersonalInfo(user.docGiaId || user.nhanVienId!, user.role);
         this.redirectToHome(router);
       } catch (error) {
@@ -44,7 +45,8 @@ export const useAuthStore = defineStore("auth", {
         const user = await this.authenticate("/auth/signup", credentials);
         await this.loadPersonalInfo(user.docGiaId!, user.role);
         this.redirectToHome(router);
-      } catch (error) {
+      } catch (error: any) {
+        this.error = error.response.data.message;
         this.handleError(error, "Có lỗi xảy ra khi đăng ký tài khoản!!!");
       } finally {
         this.setLoading(false);
@@ -83,7 +85,6 @@ export const useAuthStore = defineStore("auth", {
         await this.loadPersonalInfo(this.user.docGiaId || this.user.nhanVienId!, this.user.role);
       } catch (error) {
         this.clearUserData();
-        console.log("authStore checkingAuth error:", error);
       } finally {
         this.setLoading(false);
       }
@@ -94,8 +95,10 @@ export const useAuthStore = defineStore("auth", {
       try {
         await axiosInstance.post("/auth/logout");
         this.clearUserData();
+        if (router.currentRoute.value.path.startsWith("/dashboard")) {
+          router.push({path: "/login"});
+        }
       } catch (error) {
-        console.log("authStore logout error:", error);
         this.setLoading(false);
       }
     },
@@ -117,8 +120,12 @@ export const useAuthStore = defineStore("auth", {
     },
 
     handleError(error: any, fallbackMessage: string) {
-      console.log("authStore error:", error);
-      this.error = (error as string) || fallbackMessage;
+      if (error.code === "ERR_NETWORK") {
+        this.error = "Không thể kết nối đến máy chủ!!!";
+        return;
+      }
+
+      this.error = error.response.data.message || fallbackMessage;
     },
 
     clearUserData() {

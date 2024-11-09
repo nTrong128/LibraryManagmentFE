@@ -6,7 +6,7 @@ import * as z from 'zod'
 import { ref, reactive } from 'vue'
 import { toast } from '@/components/ui/toast'
 import { AutoForm } from '@/components/ui/auto-form'
-import { useRouter } from 'vue-router'
+import Error from '@/components/Error.vue'
 import { useAuthStore } from '@/stores/authStore'
 
 // Step 1 schema - account information
@@ -38,6 +38,7 @@ const accountFieldConfig = {
         inputProps: {
             type: 'text',
             placeholder: 'b2106819',
+            autoComplete: 'username',
             name: 'username',
         },
     },
@@ -45,6 +46,7 @@ const accountFieldConfig = {
         label: 'Mật khẩu',
         inputProps: {
             type: 'password',
+            autoComplete: 'password',
             placeholder: '••••••••',
             name: 'password',
         }
@@ -53,6 +55,7 @@ const accountFieldConfig = {
         label: 'Nhập lại mật khẩu',
         inputProps: {
             type: 'password',
+            autoComplete: 're-password',
             placeholder: '••••••••',
             name: 'rePassword',
         }
@@ -66,6 +69,7 @@ const personalFieldConfig = {
         inputProps: {
             type: 'text',
             placeholder: 'Văn A',
+            autoComplete: 'name',
             name: 'HoTen',
         }
     },
@@ -74,6 +78,7 @@ const personalFieldConfig = {
         inputProps: {
             type: 'email',
             placeholder: 'example@example.com',
+            autoComplete: 'email',
             name: 'email',
         }
     },
@@ -82,6 +87,7 @@ const personalFieldConfig = {
         inputProps: {
             type: 'tel',
             placeholder: '0939 999 999',
+            autoComplete: 'tel',
             name: 'SoDienThoai',
         }
     },
@@ -90,6 +96,7 @@ const personalFieldConfig = {
         inputProps: {
             type: 'text',
             placeholder: 'Ninh Kiều, Cần Thơ',
+            autoComplete: 'address',
             name: 'DiaChi',
         }
     },
@@ -137,13 +144,13 @@ async function onSubmit(values: {
 
     loading.value = true
     await new Promise(resolve => setTimeout(resolve, 1000))
+    await authStore.signup(formData.value)
 
     toast({
         title: 'Đăng ký tài khoản thành công.',
         description: JSON.stringify(formData.value, null, 2),
     })
 
-    await authStore.signup(formData.value)
     console.log(formData.value)
 
     loading.value = false
@@ -184,6 +191,8 @@ async function onSubmit(values: {
                 </Button>
             </div>
         </AutoForm>
+        <Error v-if="authStore.error" :description="authStore.error || ''">
+        </Error>
     </CardContent>
 
     <CardFooter>

@@ -14,6 +14,7 @@ interface State<T> {
   totalItems: number;
   totalPages: number;
   search: string;
+  searchBy: string;
   sortBy: string;
   sortOrder: string;
 }
@@ -29,11 +30,12 @@ export const useBookStore = defineStore("book", {
     totalItems: 0,
     totalPages: 0,
     search: "",
+    searchBy: "TenSach",
     sortBy: "MaSach",
     sortOrder: "asc",
   }),
   actions: {
-    async fetchBooks(page = 1, pageSize = 5) {
+    async fetchBooks(page = 1, pageSize = 15) {
       this.loading = true;
       this.error = null;
       this.currentPage = page;
@@ -46,6 +48,7 @@ export const useBookStore = defineStore("book", {
           search: this.search,
           sortBy: this.sortBy,
           sortOrder: this.sortOrder,
+          searchBy: this.searchBy,
         };
 
         const response = await axiosInstance.get<ApiResponse<Sach[]>>("/sach", {
@@ -133,10 +136,16 @@ export const useBookStore = defineStore("book", {
     },
 
     // Update a book by ID
-    async updateBook(id: string, updatedBook: Partial<Sach>) {
+    async updateBook(id: string, updatedBook: Partial<Sach>, imageFile?: File) {
       this.loading = true;
       this.error = null;
       try {
+        if (imageFile) {
+          const imageUrl = await this.uploadImage(imageFile);
+          console.log("Uploaded image URL:", imageUrl);
+          updatedBook.image = imageUrl;
+        }
+
         const {MaSach, ...bookToUpdate} = updatedBook;
         const response = await axiosInstance.put<ApiResponse<Sach>>(`/sach/${id}`, bookToUpdate);
         const index = this.items.findIndex((book) => book.MaSach === id);
@@ -184,8 +193,9 @@ export const useBookStore = defineStore("book", {
       this.sortBy = sortBy;
       this.sortOrder = sortOrder;
     },
-    setSearch(search: string) {
+    setSearch(search: string, searchBy: string) {
       this.search = search;
+      this.searchBy = searchBy;
     },
   },
   getters: {

@@ -1,105 +1,227 @@
+<template>
+    <Card>
+        <CardHeader>
+            <CardTitle class="flex justify-between items-center">
+                Danh sách sách
+            </CardTitle>
+            <div class="mt-4 flex flex-wrap justify-start space-x-2 items-center">
+                <div class="flex-grow mb-2 sm:mb-0 sm:mr-2 flex space-x-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" class="w-[150px]">
+                                Tìm theo: {{ getCurrentSearchByLabel() }}
+                                <ChevronDown class="ml-2 h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent class="w-[150px]">
+                            <DropdownMenuLabel>Chọn tiêu chí tìm kiếm</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuRadioGroup v-model="searchBy" @update:model-value="handleSearchByChange">
+                                <DropdownMenuRadioItem v-for="option in searchOptions" :key="option.key" :value="option.key">
+                                    {{ option.label }}
+                                </DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <div class="relative flex-grow w-full items-center">
+                        <Input class="pl-10 w-full" type="search" :placeholder="`Tìm kiếm theo ${getCurrentSearchByLabel().toLowerCase()}...`" v-model="searchQuery" @input="handleSearchInput" />
+                        <span class="absolute start-0 inset-y-0 flex items-center justify-center px-2">
+                            <Search class="size-6 text-muted-foreground" />
+                        </span>
+                    </div>
+
+                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" class="w-[200px]">
+                            Sắp xếp theo: {{ getCurrentSortLabel() }}
+                            <ChevronDown class="ml-2 h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent class="w-[200px]">
+                        <DropdownMenuLabel>Chọn tiêu chí sắp xếp</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuRadioGroup v-model="sortBy" @update:model-value="handleSortChange">
+                            <DropdownMenuRadioItem v-for="column in sortableColumns" :key="column.key" :value="column.key">
+                                {{ column.label }}
+                            </DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <Button variant="outline" @click="toggleSortOrder">
+                    {{ sortOrder === 'asc' ? 'Tăng dần' : 'Giảm dần' }}
+                    <ArrowUpDown class="ml-2 h-4 w-4" />
+                </Button>
+            </div>
+        </CardHeader>
+
+        <CardContent>
+            <div v-if="bookStore.loading" class="flex justify-center my-40">
+                <Spinner class="h-8 w-8" />
+            </div>
+            <div v-else-if="totalItems === 0" class="flex justify-center my-40">
+                <p class="text-lg text-gray-500 dark:text-gray-400">Không có sách nào</p>
+            </div>
+            <div v-else>
+
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                    <Card v-for="book in books" :key="book.MaSach" class="flex flex-col">
+                        <CardHeader>
+                            <CardTitle class="text-lg font-semibold truncate">{{ book.TenSach }}</CardTitle>
+                            <CardDescription>{{ getPublisherName(book.MaNXB) }} - {{ book.NamXuatBan }}</CardDescription>
+                        </CardHeader>
+                        <CardContent class="flex-grow">
+                            <AspectRatio :ratio="3 / 4" class="bg-muted mb-4">
+                                <img v-if="book.image" :src="book.image" :alt="`Bìa sách ${book.TenSach}`"
+                                    class="rounded-md object-cover w-full h-full transition-transform duration-300 ease-in-out hover:scale-110" loading="lazy" />
+                                <div v-else class="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                                    Không có ảnh
+                                </div>
+                            </AspectRatio>
+                            <div class="space-y-2">
+                                <p><strong>Số lượng còn lại:</strong> {{ book.SoQuyen }}</p>
+                                <!-- <p><strong>Đơn giá:</strong> {{ book.DonGia }} VNĐ</p> -->
+                                <p><strong>Tác giả:</strong> {{ book.NguonGoc }}</p>
+                            </div>
+                        </CardContent>
+                        <CardFooter class="flex justify-end space-x-2">
+                            <Button variant="outline" size="sm" @click="">
+                                <CircleEllipsis class="h-4 w-4 mr-2" />
+                                Xem chi tiết
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </div>
+            </div>
+        </CardContent>
+        <CardFooter class="flex justify-between">
+            <div class="text-sm text-gray-700 dark:text-gray-400">
+                Sách {{ startIndex }} - {{ endIndex }} trong tổng số {{ totalItems }}
+            </div>
+            <Pagination v-if="totalPages > 1" :total-pages="totalPages" :current-page="currentPage" @change="changePage" />
+        </CardFooter>
+    </Card>
+</template>
+
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu'
+import { CircleEllipsis, ChevronDown, ArrowUpDown, Search } from 'lucide-vue-next'
+import { useBookStore } from '@/stores/bookStore'
+import { useNhaXuatBanStore } from '@/stores/nhaXuatBanStore'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent } from '@/components/ui/card'
-import { BookOpen, Search, Clock, Users } from 'lucide-vue-next'
-import landingHeader from '@/components/header/landingHeader.vue'
-import loggedInHeader from '@/components/header/loggedInHeader.vue'
-import { useAuthStore } from '@/stores/authStore'
+import Spinner from '@/components/Spinner.vue'
+import Pagination from '@/components/Pagination.vue'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
 
 
-const searchQuery = ref('')
+const bookStore = useBookStore()
+const publisherStore = useNhaXuatBanStore()
+const { items: books, currentPage, totalItems, totalPages, pageSize } = storeToRefs(bookStore)
+const publishers = computed(() => publisherStore.allNhaXuatBans)
 
-const handleSearch = () => {
-    // Implement search functionality
-    console.log('Searching for:', searchQuery.value)
-    // router.push({ name: 'SearchResults', query: { q: searchQuery.value } })
-}
 
-const featuredBooks = [
-    { id: 1, title: 'To Kill a Mockingbird', author: 'Harper Lee', cover: 'https://m.media-amazon.com/images/I/81aY1lxk+9L._AC_UF1000,1000_QL80_.jpg' },
-    { id: 2, title: '1984', author: 'George Orwell', cover: 'https://m.media-amazon.com/images/I/71rpa1-kyvL._AC_UF1000,1000_QL80_.jpg' },
-    { id: 3, title: 'Pride and Prejudice', author: 'Jane Austen', cover: 'https://m.media-amazon.com/images/I/81Scutrtj4L._UF1000,1000_QL80_.jpg' },
-    { id: 4, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', cover: 'https://m.media-amazon.com/images/I/51jPo0RDFUL._SL500_.jpg' },
+const startIndex = computed(() => (currentPage.value - 1) * pageSize.value + 1)
+const endIndex = computed(() => Math.min(currentPage.value * pageSize.value, totalItems.value))
+
+const sortableColumns = [
+    { key: 'TenSach', label: 'Tên sách' },
+    { key: 'SoQuyen', label: 'Số lượng' },
+    { key: 'DonGia', label: 'Đơn giá' },
+    { key: 'NamXuatBan', label: 'Năm xuất bản' },
 ]
 
-const authStore = useAuthStore()
+const searchOptions = [
+    { key: 'TenSach', label: 'Tên sách' },
+    { key: 'NguonGoc', label: 'Nguồn gốc' },
+    { key: 'NamXuatBan', label: 'Năm xuất bản' },
+]
 
-const user = authStore.user
+const sortBy = ref('TenSach')
+const sortOrder = ref<'asc' | 'desc'>('asc')
+const searchQuery = ref('')
+const searchBy = ref('TenSach')
 
+
+const getCurrentSearchByLabel = () => {
+    const currentSearchBy = searchOptions.find(option => option.key === searchBy.value)
+    return currentSearchBy ? currentSearchBy.label : 'Tên sách'
+}
+
+const getCurrentSortLabel = () => {
+    const currentSort = sortableColumns.find(column => column.key === sortBy.value)
+    return currentSort ? currentSort.label : 'Tên sách'
+}
+
+const handleSortChange = async (newSortBy: string) => {
+    sortBy.value = newSortBy
+    await refreshBooks()
+}
+
+const toggleSortOrder = async () => {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+    await refreshBooks()
+}
+
+
+
+const getPublisherName = (MaNXB: string) => {
+    const publisher = publishers.value.find(p => p.MaNXB === MaNXB)
+    return publisher ? publisher.TenNXB : 'Không rõ'
+}
+
+const changePage = async (page: number) => {
+    bookStore.currentPage = page
+    await refreshBooks()
+}
+
+const refreshBooks = async () => {
+    bookStore.setSort(sortBy.value, sortOrder.value)
+    bookStore.setSearch(searchQuery.value, searchBy.value)
+    await bookStore.fetchBooks(currentPage.value)
+}
+
+const handleSearchInput = (event: Event) => {
+    const value = (event.target as HTMLInputElement).value
+    searchQuery.value = value
+    if (value === '') {
+        debouncedSearch()
+    }
+}
+
+
+const handleSearchByChange = async () => {
+    await debouncedSearch()
+}
+
+
+const debounce = (fn: Function, delay: number) => {
+    let timeoutId: ReturnType<typeof setTimeout>
+    return (...args: any[]) => {
+        clearTimeout(timeoutId)
+        timeoutId = setTimeout(() => fn(...args), delay)
+    }
+}
+
+// Debounced search function
+const debouncedSearch = debounce(async () => {
+    await refreshBooks()
+}, 500)
+
+// Watch for changes in the search query or search by option
+watch([searchQuery, searchBy], async () => {
+    if (searchQuery.value !== '') {
+        await debouncedSearch()
+    }
+})
+
+
+onMounted(() => {
+    bookStore.fetchBooks()
+    publisherStore.fetchAllNhaXuatBans()
+})
 </script>
-
-<template>
-    <div class="min-h-screen bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800">
-        <main class="container mx-auto px-6 py-8">
-            <section class="text-center mb-16">
-                <h1 class="text-4xl font-bold mb-4">Welcome to MyLibrary</h1>
-                <p class="text-xl mb-8">Discover, borrow, and enjoy a world of books at your fingertips.</p>
-                <div class="flex justify-center">
-                    <div class="relative w-full max-w-xl">
-                        <Input v-model="searchQuery" type="text" placeholder="Search for books..." class="pr-10" @keyup.enter="handleSearch" />
-                        <Button class="absolute right-0 top-0 bottom-0" @click="handleSearch">
-                            <Search class="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
-            </section>
-
-            <section class="mb-16">
-                <h2 class="text-2xl font-semibold mb-6">Featured Books</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    <Card v-for="book in featuredBooks" :key="book.id" class="overflow-hidden">
-                        <img :src="book.cover" :alt="book.title" class="w-full h-48 object-cover" />
-                        <CardContent>
-                            <h3 class="font-semibold">{{ book.title }}</h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ book.author }}</p>
-                        </CardContent>
-                    </Card>
-                </div>
-            </section>
-
-            <section class="mb-16">
-                <h2 class="text-2xl font-semibold mb-6">Why Choose MyLibrary?</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <Card>
-                        <CardContent class="flex flex-col items-center text-center p-6">
-                            <BookOpen class="h-12 w-12 text-green-600 dark:text-green-400 mb-4" />
-                            <h3 class="text-xl font-semibold mb-2">Vast Collection</h3>
-                            <p>Access thousands of books across various genres and topics.</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent class="flex flex-col items-center text-center p-6">
-                            <Clock class="h-12 w-12 text-green-600 dark:text-green-400 mb-4" />
-                            <h3 class="text-xl font-semibold mb-2">24/7 Access</h3>
-                            <p>Borrow and return books anytime, from anywhere.</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent class="flex flex-col items-center text-center p-6">
-                            <Users class="h-12 w-12 text-green-600 dark:text-green-400 mb-4" />
-                            <h3 class="text-xl font-semibold mb-2">Community</h3>
-                            <p>Join book clubs, discussions, and literary events.</p>
-                        </CardContent>
-                    </Card>
-                </div>
-            </section>
-
-            <section v-if="!authStore.isAuthenticated" class="text-center">
-                <h2 class="text-2xl font-semibold mb-4">Ready to Start Reading?</h2>
-                <p class="mb-6">Join MyLibrary today and unlock a world of knowledge and imagination.</p>
-                <router-link to="/signup"><Button size="lg">Sign Up Now</Button></router-link>
-            </section>
-        </main>
-
-        <footer class="bg-white dark:bg-gray-800 shadow mt-16">
-            <div class="container mx-auto px-6 py-4">
-                <p class="text-center text-gray-600 dark:text-gray-400">
-                    © B2106819 - Lê Nhật Trọng - 2024
-                </p>
-            </div>
-        </footer>
-    </div>
-</template>
