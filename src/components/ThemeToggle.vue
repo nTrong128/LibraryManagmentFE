@@ -1,15 +1,27 @@
-<template>
-    <Button variant="outline" size="icon" @click="toggleTheme" class="relative">
-        <SunIcon class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" :class="{ 'scale-0': theme === 'dark' }" />
-        <MoonIcon class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" :class="{ 'scale-100 rotate-0': theme === 'dark' }" />
-        <span class="sr-only">Toggle theme</span>
-    </Button>
-</template>
-
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 import { Button } from '@/components/ui/button'
 import { SunIcon, MoonIcon } from 'lucide-vue-next'
 
+const props = defineProps<{
+    showText?: boolean
+}>()
+
 const { theme, toggleTheme } = useTheme()
+
+const buttonClass = computed(() => {
+    return props.showText ? 'px-3 py-2' : 'w-10 h-10'
+})
 </script>
+
+<template>
+    <Button variant="outline" @click="toggleTheme" :class="buttonClass">
+
+        <div class="flex">
+            <SunIcon :v-if="theme === 'dark'" class="transition-all duration-300" :class="theme === 'dark' ? 'hidden ' : ''" />
+            <MoonIcon class="transition-all duration-300" :class="theme === 'dark' ? ' ' : ' hidden'" />
+            <span v-if="props.showText" class="ml-2">{{ theme === 'dark' ? 'Giao diện sáng' : 'Giao diện tối' }}</span>
+        </div>
+    </Button>
+</template>
