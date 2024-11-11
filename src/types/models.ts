@@ -34,6 +34,9 @@ export interface NhaXuatBan {
   updateAt: string;
   createAt: string;
   deleted: boolean;
+  _count?: {
+    Sach: number;
+  };
 }
 
 // Types for MuonSach
@@ -52,7 +55,7 @@ export interface MuonSach {
 // Types for NhanVien
 export interface NhanVien {
   MSNV: string;
-  HoTen: string;
+  HoTenNV: string;
   Password: string;
   ChucVu: string;
   DiaChi: string;

@@ -23,9 +23,19 @@ const router = createRouter({
           component: () => import("@/views/admin/BorrowApplication.vue"),
         },
         {
-          path: "/dashboard/books/:page?",
+          path: "/dashboard/books",
           name: "books",
           component: () => import("@/views/admin/BookManagement.vue"),
+        },
+        {
+          path: "/dashboard/publishers",
+          name: "publishers",
+          component: () => import("@/views/admin/PublisherManagement.vue"),
+        },
+        {
+          path: "/dashboard/employees",
+          name: "employees",
+          component: () => import("@/views/admin/EmployeeManagement.vue"),
         },
       ],
     },
@@ -41,8 +51,13 @@ const router = createRouter({
         },
         {
           path: "/books",
-          name: "booksBrowse",
-          component: () => import("@/views/user/BookBrowse.vue"),
+          name: "browseBooks",
+          component: () => import("@/views/Book.vue"),
+        },
+        {
+          path: "/:id",
+          name: "BookDetail",
+          component: () => import("@/views/user/BookDetail.vue"),
         },
         {
           path: "/borrow",
