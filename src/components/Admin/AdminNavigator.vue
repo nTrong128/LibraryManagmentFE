@@ -15,11 +15,7 @@
 
         <!-- User Menu (Desktop) -->
         <div class="hidden md:flex items-center space-x-4">
-          <nav class="hidden md:flex space-x-4">
-            <RouterLink v-for="(item, index) in navItems" :key="index" :to="item.path">
-              <Button variant="ghost" class="mx-2">{{ item.label }}</Button>
-            </RouterLink>
-          </nav>
+
           <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger>
@@ -91,10 +87,6 @@
   </header>
 
 
-
-
-
-
 </template>
 
 <script setup>
@@ -139,8 +131,10 @@ const onSubmit = async () => {
 
 
 const navItems = [
-  { path: '/dashboard', label: 'Dashboard' },
-  { path: '/dashboard/books', label: 'Book Management' },
-  { path: '/dashboard/applications', label: 'Borrow application' }
+  { path: '/dashboard', label: 'Trang chủ' },
+  { path: '/dashboard/books', label: 'Sách' },
+  { path: '/dashboard/applications', label: 'Đơn mượn sách' },
+  { path: '/dashboard/applications', label: 'Người dùng' },
+  { path: '/dashboard/applications', label: 'Nhân viên' }
 ]
 </script>
