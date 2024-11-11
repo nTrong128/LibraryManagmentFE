@@ -128,14 +128,12 @@ watch(() => selectedBook.value, (newValue) => {
 
 const handleSubmit = async () => {
     if (bookStore.loading) return
-    if (!fileInput.value || !fileInput.value.files || fileInput.value.files.length === 0) {
-        error.value = 'Vui lòng thêm ảnh bìa.'
-        return
-    }
+
     error.value = ''
     console.log(imageFile.value)
     try {
-        const addedBook = await bookStore.updateBook(editedBook.value.MaSach, { ...editedBook.value }, imageFile.value || undefined)
+        console.log(editedBook.value)
+        await bookStore.updateBook(editedBook.value.MaSach, { ...editedBook.value }, imageFile.value || undefined)
 
         toast({
             title: "Thành công",

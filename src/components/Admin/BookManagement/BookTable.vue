@@ -8,12 +8,12 @@
         <div class="flex-grow mb-2 sm:mb-0 sm:mr-2 flex space-x-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" class="w-[150px]">
+              <Button variant="outline" class="w-[200px]">
                 Tìm theo: {{ getCurrentSearchByLabel() }}
                 <ChevronDown class="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent class="w-[150px]">
+            <DropdownMenuContent class="w-[200px]">
               <DropdownMenuLabel>Chọn tiêu chí tìm kiếm</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup v-model="searchBy" @update:model-value="handleSearchByChange">
@@ -33,12 +33,12 @@
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" class="w-[200px]">
+            <Button variant="outline" class="w-[220px]">
               Sắp xếp theo: {{ getCurrentSortLabel() }}
               <ChevronDown class="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent class="w-[200px]">
+          <DropdownMenuContent class="w-[220px]">
             <DropdownMenuLabel>Chọn tiêu chí sắp xếp</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup v-model="sortBy" @update:model-value="handleSortChange">
@@ -68,8 +68,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <Card v-for="book in books" :key="book.MaSach" class="flex flex-col">
             <CardHeader>
-              <CardTitle class="text-lg font-semibold truncate">{{ book.TenSach }}</CardTitle>
-              <CardDescription>{{ getPublisherName(book.MaNXB) }} - {{ book.NamXuatBan }}</CardDescription>
+              <CardTitle class="text-lg font-semibold truncate	">{{ book.TenSach }}</CardTitle>
+              <CardDescription class="truncate">{{ getPublisherName(book.MaNXB) }}</CardDescription>
+              <CardDescription class="truncate"> {{ book.NamXuatBan }}</CardDescription>
             </CardHeader>
             <CardContent class="flex-grow">
               <AspectRatio :ratio="3 / 4" class="bg-muted mb-4">
@@ -82,7 +83,7 @@
               <div class="space-y-2">
                 <p><strong>Số lượng:</strong> {{ book.SoQuyen }}</p>
                 <p><strong>Đơn giá:</strong> {{ book.DonGia }} VNĐ</p>
-                <p><strong>Nguồn gốc:</strong> {{ book.NguonGoc }}</p>
+                <p class="line-clamp-2"><strong>Nguồn gốc:</strong> {{ book.NguonGoc }}</p>
               </div>
             </CardContent>
             <CardFooter class="flex justify-end space-x-2">
@@ -144,12 +145,14 @@ const sortableColumns = [
   { key: 'TenSach', label: 'Tên sách' },
   { key: 'SoQuyen', label: 'Số lượng' },
   { key: 'DonGia', label: 'Đơn giá' },
+  { key: 'TenNXB', label: 'Tên nhà xuất bản' },
   { key: 'NamXuatBan', label: 'Năm xuất bản' },
 ]
 
 const searchOptions = [
   { key: 'TenSach', label: 'Tên sách' },
-  { key: 'NguonGoc', label: 'Nguồn gốc' },
+  { key: 'NguonGoc', label: 'Tác giả' },
+  { key: 'TenNXB', label: 'Tên nhà xuất bản' },
   { key: 'NamXuatBan', label: 'Năm xuất bản' },
 ]
 
@@ -246,8 +249,8 @@ watch([searchQuery, searchBy], async () => {
 })
 
 
-onMounted(() => {
-  bookStore.fetchBooks()
-  publisherStore.fetchAllNhaXuatBans()
+onMounted(async () => {
+  await bookStore.fetchBooks()
+  await publisherStore.fetchAllNhaXuatBans()
 })
 </script>

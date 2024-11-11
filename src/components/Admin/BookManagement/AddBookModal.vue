@@ -1,7 +1,7 @@
 <template>
     <Dialog v-model:open="open">
         <DialogTrigger asChild>
-            <Button class="bg-indigo-600 hover:bg-indigo-700 text-white">Add Book</Button>
+            <Button class="bg-indigo-600 hover:bg-indigo-700 text-white">Thêm sách mới</Button>
         </DialogTrigger>
         <DialogContent class="sm:max-w-[800px]">
             <DialogHeader>
