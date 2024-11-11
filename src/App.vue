@@ -16,6 +16,6 @@ onMounted(async () => {
 
 <template>
   <RouterView />
-  <Toaster />
+  <Toaster duration="2000" />
 
 </template>
