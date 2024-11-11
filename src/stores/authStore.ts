@@ -141,5 +141,6 @@ export const useAuthStore = defineStore("auth", {
     isAuthenticated: (state) => !!state.user,
     isDocGia: (state) => state.role === Role.DOCGIA,
     isNhanVien: (state) => state.role === Role.NHANVIEN,
+    getPersonalInfo: (state) => state.personalInfo,
   },
 });

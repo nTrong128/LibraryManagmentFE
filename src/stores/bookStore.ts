@@ -1,6 +1,7 @@
 import {defineStore} from "pinia";
 import axiosInstance, {type ApiResponse} from "@/services/axiosInstance";
 import {type Sach} from "@/types/models";
+import {resizeImage} from "@/utils/resizeImage";
 
 const CLOUDNAME = import.meta.env.VITE_CLOUDINARY_NAME;
 
@@ -84,12 +85,14 @@ export const useBookStore = defineStore("book", {
     },
 
     async uploadImage(file: File): Promise<string> {
+      const image = await resizeImage(file, 1000);
+
       const url = `https://api.cloudinary.com/v1_1/${CLOUDNAME}/upload`;
       const formData = new FormData();
       formData.append("tags", "browser_upload");
       formData.append("upload_preset", "libraryManagement");
       formData.append("folder", "libraryManagement");
-      formData.append("file", file);
+      formData.append("file", image);
 
       try {
         const response = await axiosInstance.post(url, formData, {
@@ -146,7 +149,7 @@ export const useBookStore = defineStore("book", {
           updatedBook.image = imageUrl;
         }
 
-        const {MaSach, ...bookToUpdate} = updatedBook;
+        const {MaSach, updateAt, createAt, deleted, ...bookToUpdate} = updatedBook;
         const response = await axiosInstance.put<ApiResponse<Sach>>(`/sach/${id}`, bookToUpdate);
         const index = this.items.findIndex((book) => book.MaSach === id);
         if (index !== -1) {
@@ -199,6 +202,7 @@ export const useBookStore = defineStore("book", {
     },
   },
   getters: {
+    selectedBook: (state) => state.selectedItem,
     allBooks: (state) => state.items,
     bookById: (state) => (id: string) => state.items.find((book) => book.MaSach === id),
   },

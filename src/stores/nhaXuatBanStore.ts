@@ -11,6 +11,10 @@ interface State<T> {
   pageSize: number;
   totalItems: number;
   totalPages: number;
+  search: string;
+  searchBy: string;
+  sortBy: string;
+  sortOrder: string;
 }
 
 export const useNhaXuatBanStore = defineStore("nhaxuatban", {
@@ -19,10 +23,14 @@ export const useNhaXuatBanStore = defineStore("nhaxuatban", {
     selectedItem: null,
     loading: false,
     error: null,
-    currentPage: 1, // Start with the first page
-    pageSize: 5, // Default page size
-    totalItems: 0, // Total number of items
-    totalPages: 0, // Total number of pages
+    currentPage: 1,
+    pageSize: 5,
+    totalItems: 0,
+    totalPages: 0,
+    search: "",
+    searchBy: "TenNXB",
+    sortBy: "MaNXB",
+    sortOrder: "asc",
   }),
 
   actions: {
@@ -38,6 +46,10 @@ export const useNhaXuatBanStore = defineStore("nhaxuatban", {
           params: {
             page: this.currentPage,
             pageSize: this.pageSize,
+            search: this.search,
+            sortBy: this.sortBy,
+            sortOrder: this.sortOrder,
+            searchBy: this.searchBy,
           },
         });
 
@@ -113,8 +125,7 @@ export const useNhaXuatBanStore = defineStore("nhaxuatban", {
     async updateNhaXuatBan(id: string, updatedNhaXuatBan: Partial<NhaXuatBan>) {
       this.loading = true;
       this.error = null;
-
-      const {MaNXB, ...nhaXuatBanToUpdate} = updatedNhaXuatBan;
+      const {MaNXB, updateAt, createAt, _count, deleted, ...nhaXuatBanToUpdate} = updatedNhaXuatBan;
 
       try {
         const response = await axiosInstance.put<ApiResponse<NhaXuatBan>>(
@@ -139,7 +150,7 @@ export const useNhaXuatBanStore = defineStore("nhaxuatban", {
       this.error = null;
 
       try {
-        await axiosInstance.delete<ApiResponse<null>>(`/nhaxuatban/${id}`);
+        await axiosInstance.patch<ApiResponse<null>>(`/nhaxuatban/${id}`);
         this.items = this.items.filter((nhaxuatban) => nhaxuatban.MaNXB !== id);
       } catch (error: any) {
         this.error = error.response?.data?.message || `Failed to delete NhaXuatBan with ID: ${id}`;
@@ -161,9 +172,18 @@ export const useNhaXuatBanStore = defineStore("nhaxuatban", {
     clearSelectedNhaXuatBan() {
       this.selectedItem = null;
     },
+    setSort(sortBy: string, sortOrder: string) {
+      this.sortBy = sortBy;
+      this.sortOrder = sortOrder;
+    },
+    setSearch(search: string, searchBy: string) {
+      this.search = search;
+      this.searchBy = searchBy;
+    },
   },
 
   getters: {
+    selectedNhaXuatBan: (state) => state.selectedItem,
     allNhaXuatBans: (state) => state.items,
     nhaXuatBanById: (state) => (id: string) =>
       state.items.find((nhaxuatban) => nhaxuatban.MaNXB === id),
