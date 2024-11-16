@@ -2,7 +2,7 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex justify-between items-center">
-                Danh sách nhân viên
+                Danh sách đọc giả
             </CardTitle>
             <div class="mt-4 flex flex-wrap justify-start space-x-2 items-center">
                 <div class="flex-grow mb-2 sm:mb-0 sm:mr-2 flex space-x-2">
@@ -57,40 +57,38 @@
 
         <CardContent>
 
-            <div v-if="nhanvienStore.loading" class="flex justify-center my-40">
+            <div v-if="docgiaStore.loading" class="flex justify-center my-40">
                 <Spinner class="h-8 w-8" />
             </div>
+            <div v-else-if="totalItems === 0" class="my-40 flex justify-center">
+                <p class="text-lg text-gray-500">Không có đọc giả nào</p>
+            </div>
             <Table v-else>
-                <div v-if="totalItems === 0" class="flex justify-center my-40">
-                    <p class="text-lg text-gray-500 dark:text-gray-400">Không có nhân viên nào</p>
-                </div>
-                <TableHeader v-else>
+                <TableHeader>
                     <TableRow>
                         <TableHead v-for="column in columns" :key="column.key">
                             {{ column.label }}
                         </TableHead>
                     </TableRow>
                 </TableHeader>
-
-
                 <TableBody>
-                    <TableRow class="" v-for="(nhanvien, index) in nhanviens" :key="nhanvien.MSNV">
+                    <TableRow class="" v-for="(docgia, index) in docgias" :key="docgia.MaDocGia">
                         <TableCell>{{ (currentPage - 1) * pageSize + index + 1 }}</TableCell>
-                        <TableCell>{{ nhanvien.MSNV }}</TableCell>
-                        <TableCell>{{ nhanvien.username }}</TableCell>
-                        <TableCell>{{ nhanvien.email }}</TableCell>
-                        <TableCell class="text-clip overflow-hidden ...">{{ nhanvien.HoTenNV }}</TableCell>
-                        <TableCell>{{ nhanvien.DiaChi }}</TableCell>
-                        <TableCell>{{ nhanvien.SoDienThoai }}</TableCell>
-                        <TableCell>{{ nhanvien.ChucVu }}</TableCell>
-                        <TableCell>{{ nhanvien.role }}</TableCell>
-                        <TableCell>{{ formatTimestamp(nhanvien.updateAt) }}</TableCell>
+                        <TableCell>{{ docgia.MaDocGia }}</TableCell>
+                        <TableCell>{{ docgia.username }}</TableCell>
+                        <TableCell>{{ docgia.email }}</TableCell>
+                        <TableCell class="text-clip overflow-hidden ...">{{ docgia.HoTen }}</TableCell>
+                        <TableCell>{{ docgia.DiaChi }}</TableCell>
+                        <TableCell>{{ docgia.DienThoai }}</TableCell>
+                        <TableCell>{{ mappingGender(docgia?.Phai as Gender) }}</TableCell>
+                        <TableCell>{{ formatDate(docgia?.NgaySinh) || "Chưa cập nhật" }}</TableCell>
+                        <TableCell>{{ formatTimestamp(docgia.updateAt) }}</TableCell>
                         <TableCell>
                             <div class="flex justify-center align-middle space-x-2">
-                                <Button class="rounded-full px-2 bg-indigo-400 hover:bg-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-800" @click="openEditModal(nhanvien)">
+                                <Button class="rounded-full px-2 bg-indigo-400 hover:bg-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-800" @click="openEditModal(docgia)">
                                     <SquarePen class="dark:text-slate-200" />
                                 </Button>
-                                <Button class="rounded-full px-2 bg-rose-500 hover:bg-rose-600 dark:bg-rose-500 dark:hover:bg-rose-800" @click="openDeleteModal(nhanvien)">
+                                <Button class="rounded-full px-2 bg-rose-500 hover:bg-rose-600 dark:bg-rose-500 dark:hover:bg-rose-800" @click="openDeleteModal(docgia)">
                                     <Trash2 class="dark:text-slate-200" />
                                 </Button>
                             </div>
@@ -109,8 +107,8 @@
         </CardFooter>
     </Card>
 
-    <EditEmployee v-model:isOpen="isEditModalOpen" />
-    <DeleteEmployee v-model:isOpen="isDeleteModalOpen" @delete="handleDeleteNhanVien" />
+    <EditUser v-model:isOpen="isEditModalOpen" />
+    <DeleteUser v-model:isOpen="isDeleteModalOpen" @delete="handleDeleteDocGia" />
 
 </template>
 
@@ -123,17 +121,16 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLab
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { SquarePen, Trash2, ArrowUpDown, ChevronDown, Search } from 'lucide-vue-next'
-import { useNhanVienStore } from '@/stores/nhanvienStore'
-import DeleteEmployee from "@/components/Admin/EmployeeManagement/DeleteEmployee.vue"
-import EditEmployee from "@/components/Admin/EmployeeManagement/EditEmployee.vue"
+import { useDocgiaStore } from '@/stores/docgiaStore'
+import DeleteUser from "@/components/Admin/UserManagement/DeleteUser.vue"
+import EditUser from "@/components/Admin/UserManagement/EditUser.vue"
 import Spinner from '@/components/Spinner.vue'
-import { formatTimestamp } from '@/utils/dateTime'
+import { formatTimestamp, formatDate } from '@/utils/dateTime'
 import Pagination from '@/components/Pagination.vue'
-import type { NhanVien } from '@/types/models'
-
-
-const nhanvienStore = useNhanVienStore()
-const { items: nhanviens, currentPage, totalItems, totalPages, pageSize } = storeToRefs(nhanvienStore)
+import type { Docgia, Gender } from '@/types/models'
+import { mappingGender } from '@/utils/mapping'
+const docgiaStore = useDocgiaStore()
+const { items: docgias, currentPage, totalItems, totalPages, pageSize } = storeToRefs(docgiaStore)
 
 
 
@@ -145,92 +142,94 @@ const endIndex = computed(() => Math.min(currentPage.value * pageSize.value, tot
 
 const columns = [
     { key: '', label: 'STT' },
-    { key: 'MSNV', label: 'Mã số nhân viên' },
+    { key: 'MaDocGia', label: 'Mã số đọc giả' },
     { key: 'username', label: 'Tên tài khoản' },
     { key: 'email', label: 'Email' },
-    { key: 'HoTenNV', label: 'Tên nhân viên' },
+    { key: 'HoTen', label: 'Tên đọc giả' },
     { key: 'DiaChi', label: 'Địa chỉ' },
-    { key: 'SoDienThoai', label: 'Số điện thoại' },
-    { key: 'ChucVu', label: 'Chức vụ' },
-    { key: 'role', label: 'Mức tài khoản' },
+    { key: 'DienThoai', label: 'Số điện thoại' },
+    { key: 'Phai', label: 'Giới tính' },
+    { key: 'NgaySinh', label: 'Ngày sinh' },
     { key: 'updateAt', label: 'Cập nhật cuối' },
 ]
 
 const searchOptions = [
-    { key: 'HoTenNV', label: 'Tên nhân viên' },
-    { key: 'MSNV', label: 'Mã số nhân viên' },
-    { key: 'username', label: 'Tên tài khoản' },
-    { key: 'email', label: 'Email' },
+    { key: 'HoTen', label: 'Tên đọc giả' },
     { key: 'DiaChi', label: 'Địa chỉ' },
-    { key: 'ChucVu', label: 'Chức vụ' },
-    { key: 'updateAt', label: 'Cập nhật cuối' },
+    { key: 'username', label: 'Tên tài khoản' },
+    { key: 'DienThoai', label: 'Số điện thoại' },
+    { key: 'Phai', label: 'Giới tính' },
+    { key: 'email', label: 'Email' },
+    { key: 'username', label: 'Tên tài khoản' },
 ]
 
 const sortableColumns = [
-    { key: 'HoTenNV', label: 'Tên nhân viên' },
-    { key: 'MSNV', label: 'Mã số nhân viên' },
+    { key: 'HoTen', label: 'Tên đọc giả' },
+    { key: 'DiaChi', label: 'Địa chỉ' },
     { key: 'username', label: 'Tên tài khoản' },
     { key: 'email', label: 'Email' },
-    { key: 'DiaChi', label: 'Địa chỉ' },
-    { key: 'ChucVu', label: 'Chức vụ' },
+    { key: 'Phai', label: 'Giới tính' },
+    { key: 'NgaySinh', label: 'Ngày sinh' },
+    { key: 'username', label: 'Tên tài khoản' },
     { key: 'updateAt', label: 'Cập nhật cuối' },
     { key: 'deleted', label: 'Đã xóa' },
 ]
 
-const sortBy = ref('HoTenNV')
+
+const sortBy = ref('HoTen')
 const sortOrder = ref<'asc' | 'desc'>('asc')
 const searchQuery = ref('')
-const searchBy = ref('HoTenNV')
+const searchBy = ref('HoTen')
 
 
 const getCurrentSearchByLabel = () => {
     const currentSearchBy = searchOptions.find(option => option.key === searchBy.value)
-    return currentSearchBy ? currentSearchBy.label : 'Tên nhân viên'
+    return currentSearchBy ? currentSearchBy.label : 'Tên đọc giả'
 }
 
 const getCurrentSortLabel = () => {
     const currentSort = sortableColumns.find(column => column.key === sortBy.value)
-    return currentSort ? currentSort.label : 'Tên nhân viên'
+    return currentSort ? currentSort.label : 'Tên đọc giả'
 }
 
 
 const handleSortChange = async (newSortBy: string) => {
     sortBy.value = newSortBy
-    await refreshNhanViens()
+    await refreshDocGias()
 }
 
 const toggleSortOrder = async () => {
     sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
-    await refreshNhanViens()
+    await refreshDocGias()
 }
 
-const openEditModal = (nhanvien: NhanVien) => {
-    nhanvienStore.selectNhanVien(nhanvien)
+const openEditModal = (docgia: Docgia) => {
+    docgiaStore.selectDocgia(docgia)
     isEditModalOpen.value = true
 }
 
-const openDeleteModal = (nhanvien: NhanVien) => {
-    nhanvienStore.selectNhanVien(nhanvien)
+const openDeleteModal = (docgia: Docgia) => {
+    docgiaStore.selectDocgia(docgia)
     isDeleteModalOpen.value = true
 }
 
 
-const handleDeleteNhanVien = async (id: string) => {
-    await nhanvienStore.deleteNhanVien(id)
+const handleDeleteDocGia = async (id: string) => {
+    await docgiaStore.deleteDocgia(id)
     isDeleteModalOpen.value = false
-    await refreshNhanViens()
+    await refreshDocGias()
 }
 
 const changePage = async (page: number) => {
-    nhanvienStore.currentPage = page
-    await refreshNhanViens()
+    docgiaStore.currentPage = page
+    await refreshDocGias()
 
 }
 
-const refreshNhanViens = async () => {
-    nhanvienStore.setSort(sortBy.value, sortOrder.value)
-    nhanvienStore.setSearch(searchQuery.value, searchBy.value)
-    await nhanvienStore.fetchNhanViens(currentPage.value)
+const refreshDocGias = async () => {
+    docgiaStore.setSort(sortBy.value, sortOrder.value)
+    docgiaStore.setSearch(searchQuery.value, searchBy.value)
+    await docgiaStore.fetchDocgia(currentPage.value)
 }
 
 
@@ -258,7 +257,7 @@ const debounce = (fn: Function, delay: number) => {
 
 // Debounced search function
 const debouncedSearch = debounce(async () => {
-    await refreshNhanViens()
+    await refreshDocGias()
 }, 500)
 
 // Watch for changes in the search query or search by option
@@ -270,6 +269,6 @@ watch([searchQuery, searchBy], async () => {
 
 
 onMounted(async () => {
-    await nhanvienStore.fetchNhanViens()
+    await docgiaStore.fetchDocgia()
 })
 </script>

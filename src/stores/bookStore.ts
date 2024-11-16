@@ -36,6 +36,12 @@ export const useBookStore = defineStore("book", {
     sortOrder: "asc",
   }),
   actions: {
+    async cleanUp() {
+      this.search = "";
+      this.searchBy = "TenSach";
+      this.sortBy = "MaSach";
+      this.sortOrder = "asc";
+    },
     async fetchBooks(page = 1, pageSize = 15) {
       this.loading = true;
       this.error = null;
@@ -149,7 +155,7 @@ export const useBookStore = defineStore("book", {
           updatedBook.image = imageUrl;
         }
 
-        const {MaSach, updateAt, createAt, deleted, ...bookToUpdate} = updatedBook;
+        const {MaSach, updateAt, createAt, deleted, NhaXuatBan, ...bookToUpdate} = updatedBook;
         const response = await axiosInstance.put<ApiResponse<Sach>>(`/sach/${id}`, bookToUpdate);
         const index = this.items.findIndex((book) => book.MaSach === id);
         if (index !== -1) {

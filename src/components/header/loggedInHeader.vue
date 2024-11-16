@@ -26,7 +26,7 @@
                                     <AvatarImage :src="image_url" :alt="user.user?.username" />
                                     <AvatarFallback>A</AvatarFallback>
                                 </Avatar>
-                                <span class="ml-2 text-sm font-medium text-gray-700">{{ user.user?.username }}</span>
+                                <span class="ml-2 text-sm font-medium">{{ user.user?.username }}</span>
                                 <ChevronDownIcon class="ml-2 h-4 w-4 text-gray-500" />
                             </div>
                         </DropdownMenuTrigger>
@@ -56,7 +56,7 @@
                                         <AvatarFallback>A</AvatarFallback>
 
                                     </Avatar>
-                                    <span class="ml-2 text-sm font-medium text-gray-700">{{ user.personalInfo?.HoTen }}</span>
+                                    <span class="ml-2 text-sm font-medium text-gray-700">{{ user.personalInfo?.HoTen || user.personalInfo?.HoTenNV }}</span>
                                 </div>
                                 <SheetTitle>Menu</SheetTitle>
                             </SheetHeader>

@@ -17,7 +17,7 @@ const { description } = toRefs(props)
 </script>
 
 <template>
-    <Alert class="mt-4" variant="destructive">
+    <Alert v-if="description" class="mt-4" variant="destructive">
         <AlertCircle class="w-4 h-4" />
         <AlertTitle>{{ description }}</AlertTitle>
     </Alert>

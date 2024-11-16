@@ -37,6 +37,11 @@ const router = createRouter({
           name: "employees",
           component: () => import("@/views/admin/EmployeeManagement.vue"),
         },
+        {
+          path: "/dashboard/users",
+          name: "users",
+          component: () => import("@/views/admin/UserManagement.vue"),
+        },
       ],
     },
     {
@@ -62,7 +67,7 @@ const router = createRouter({
         {
           path: "/borrow",
           name: "borrow",
-          component: () => import("@/views/user/BookBrowse.vue"),
+          component: () => import("@/views/user/BookStatus.vue"),
         },
       ],
     },
@@ -81,11 +86,6 @@ const router = createRouter({
       path: "/forgot-password",
       name: "forgot-password",
       component: () => import("@/views/auth/ForgotPassword.vue"),
-    },
-    {
-      path: "/about",
-      name: "about",
-      component: () => import("@/views/user/AboutView.vue"),
     },
   ],
 });
@@ -116,7 +116,7 @@ router.beforeEach(async (to, from, next) => {
   ) {
     if (authStore.isDocGia) {
       return next({path: "/"});
-    } else if (authStore.isNhanVien) {
+    } else if (authStore.isNhanVien || authStore.isAdmin) {
       return next({path: "/dashboard"});
     }
   }

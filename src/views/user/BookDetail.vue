@@ -25,7 +25,7 @@
                     <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
                         <!-- Left Column: Book Cover -->
                         <div class="lg:col-span-2 flex flex-col items-center">
-                            <AspectRatio :ratio="3 / 4" class="bg-secondary rounded-lg overflow-hidden shadow-md w-full max-w-md">
+                            <AspectRatio :ratio="3 / 4" class=" rounded-lg overflow-hidden shadow-md w-full max-w-md">
                                 <img v-if="book.image" :src="book.image" :alt="`Cover of ${book.TenSach}`"
                                     class="p-8 object-cover w-full h-full transition-transform duration-300 ease-in-out hover:scale-105" />
                                 <div v-else class="w-full h-full flex items-center justify-center text-muted-foreground">
@@ -65,9 +65,7 @@
                                 </div>
 
                             </div>
-                            <div class="flex justify-between w-full mt-4">
-                                <Button class="w-full mr-2">Đăng ký mượn</Button>
-                            </div>
+                            <Borrow />
                             <Separator />
                         </div>
                     </div>
@@ -89,6 +87,7 @@ import { BookOpen, ImageOff, ArrowLeft, AlertCircle } from 'lucide-vue-next'
 import { useBookStore } from '@/stores/bookStore'
 import { useNhaXuatBanStore } from '@/stores/nhaXuatBanStore'
 import Spinner from '@/components/Spinner.vue'
+import Borrow from '@/components/User/Borrow.vue'
 
 const bookStore = useBookStore()
 const publisherStore = useNhaXuatBanStore()
@@ -114,5 +113,6 @@ const goBack = () => {
 onMounted(async () => {
     const bookId = route.params.id
     await bookStore.fetchBookById(bookId as string)
+    await publisherStore.fetchAllNhaXuatBans()
 })
 </script>

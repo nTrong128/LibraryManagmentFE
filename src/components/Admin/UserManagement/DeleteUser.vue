@@ -2,9 +2,9 @@
     <Dialog :open="isOpen" @update:open="$emit('update:isOpen', $event)">
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>Xóa nhà xuất bản</DialogTitle>
+                <DialogTitle>Xóa đọc giả</DialogTitle>
                 <DialogDescription>
-                    Bạn có chắc muốn xóa nhân viên {{ selectedNhanVien?.HoTenNV }} không? Hành động này bao gồm xóa cả tài khoản và không thể hoàn tác.
+                    Bạn có chắc muốn xóa đọc giả {{ selectedDocGia?.HoTen }} không? Hành động này không thể hoàn tác.
                 </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -12,16 +12,19 @@
                 <Button variant="destructive" @click="handleDelete" :disabled="loading">
                     {{ loading ? 'Deleting...' : 'Delete' }}
                 </Button>
+                <Error v-if="docGiaStore.error" :description="docGiaStore.error || ''">
+                </Error>
             </DialogFooter>
         </DialogContent>
     </Dialog>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { useNhanVienStore } from '@/stores/nhanvienStore'
+import { useDocgiaStore } from '@/stores/docgiaStore'
+import Error from '@/components/Error.vue'
 
 const props = defineProps<{
     isOpen: boolean
@@ -32,16 +35,17 @@ const emit = defineEmits<{
     (e: 'delete', bookId: string): void
 }>()
 
-const nhanvienStore = useNhanVienStore()
-const selectedNhanVien = computed(() => nhanvienStore.selectedItem)
-const loading = computed(() => nhanvienStore.loading)
+const docGiaStore = useDocgiaStore()
+
+const selectedDocGia = computed(() => docGiaStore.selectedItem)
+const loading = computed(() => docGiaStore.loading)
 
 const handleDelete = async () => {
     try {
-        await nhanvienStore.deleteNhanVien(selectedNhanVien.value?.MSNV as string)
+        await docGiaStore.deleteDocgia(selectedDocGia.value?.MaDocGia as string)
         emit('update:isOpen', false)
     } catch (error) {
-        console.error('Error deleting publisher:', error)
+        console.error(error)
     }
 }
 

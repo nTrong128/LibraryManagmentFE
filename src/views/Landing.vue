@@ -32,7 +32,7 @@ const user = authStore.user
 </script>
 
 <template>
-    <div class="min-h-screen bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800">
+    <div class="min-h-screen bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-900 dark:to-gray-800">
         <main class="container mx-auto px-6 py-8">
             <section class="text-center mb-16">
                 <h1 class="text-4xl font-bold mb-4">Welcome to MyLibrary</h1>

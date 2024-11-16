@@ -34,10 +34,15 @@
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
+
+    --datepicker-bg: hsl(var(--background));
+    --datepicker-text: hsl(var(--foreground));
+    --datepicker-border: hsl(var(--border));
+    --datepicker-hover-bg: hsl(var(--muted));
   }
 
   .dark {
-    --background: 222.2 84% 8%; /* Slightly lighter than before */
+    --background: 206 21% 15%; /* Slightly lighter than before */
     --foreground: 210 40% 98%; /* Light gray for better readability */
 
     --muted: 217.2 32.6% 20%; /* Slightly lighter for better visibility */
@@ -46,7 +51,7 @@
     --popover: 222.2 84% 10%; /* Slightly darker than background */
     --popover-foreground: 210 40% 98%;
 
-    --card: 222.2 84% 12%; /* Slightly darker than background */
+    --card: 206 21% 8%; /* Slightly darker than background */
     --card-foreground: 210 40% 98%;
 
     --border: 217.2 32.6% 22%; /* Slightly lighter for visibility */
@@ -65,6 +70,11 @@
     --destructive-foreground: 210 40% 98%;
 
     --ring: 212.7 26.8% 60%; /* Lighter for better visibility */
+
+    --datepicker-bg: hsl(var(--card));
+    --datepicker-text: hsl(var(--card-foreground));
+    --datepicker-border: hsl(var(--border));
+    --datepicker-hover-bg: hsl(var(--muted));
   }
 }
 

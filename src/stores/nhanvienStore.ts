@@ -1,10 +1,11 @@
 import {defineStore} from "pinia";
-import axiosInstance, {type ApiResponse} from "@/services/axiosInstance"; // Import axios instance and ApiResponse interface
-import {type Docgia, type DocGiaSignUp} from "@/types/models";
+import axiosInstance, {type ApiResponse} from "@/services/axiosInstance";
+import type {NhanVien, NhanVienSignUp} from "@/types/models";
 
 interface State<T> {
   items: T[];
   selectedItem: T | null;
+  editItem: NhanVienSignUp | null;
   loading: boolean;
   error: string | null;
   currentPage: number;
@@ -17,30 +18,33 @@ interface State<T> {
   sortOrder: string;
 }
 
-export const useDocgiaStore = defineStore("docgia", {
-  state: (): State<Docgia> => ({
+export const useNhanVienStore = defineStore("nhanvien", {
+  state: (): State<NhanVien> => ({
     items: [],
     selectedItem: null,
     loading: false,
+    editItem: null,
     error: null,
     currentPage: 1,
     pageSize: 5,
     totalItems: 0,
     totalPages: 0,
     search: "",
-    searchBy: "HoTen",
-    sortBy: "HoTen",
+    searchBy: "HoTenNV",
+    sortBy: "HoTenNV",
     sortOrder: "asc",
   }),
+
   actions: {
-    async fetchDocgia(this: State<Docgia>, page = this.currentPage, pageSize = this.pageSize) {
+    // Fetch paginated NhanViens
+    async fetchNhanViens(this: State<NhanVien>, page = this.currentPage, pageSize = this.pageSize) {
       this.loading = true;
       this.error = null;
       this.currentPage = page;
       this.pageSize = pageSize;
 
       try {
-        const response = await axiosInstance.get<ApiResponse<Docgia[]>>("/docgia", {
+        const response = await axiosInstance.get<ApiResponse<NhanVien[]>>("/nhanvien", {
           params: {
             page: this.currentPage,
             pageSize: this.pageSize,
@@ -62,16 +66,16 @@ export const useDocgiaStore = defineStore("docgia", {
       }
     },
 
-    async fetchAllDocgia() {
+    // Fetch all NhanViens
+    async fetchAllNhanViens() {
       this.loading = true;
       this.error = null;
-
       try {
-        const response = await axiosInstance.get<ApiResponse<Docgia[]>>("/docgia");
+        const response = await axiosInstance.get<ApiResponse<NhanVien[]>>("/nhanvien");
 
         this.items = response.data.data;
       } catch (error: any) {
-        this.error = error.response?.data?.message || "Failed to fetch all docgias";
+        this.error = error.response?.data?.message || "Có lỗi xảy ra khi tải dữ liệu!!!";
         console.error(error);
       } finally {
         this.loading = false;
@@ -82,71 +86,82 @@ export const useDocgiaStore = defineStore("docgia", {
       return page >= 1 && page <= this.totalPages;
     },
 
-    async fetchDocgiaById(id: string) {
+    // Fetch a single NhanVien by ID
+    async fetchNhanVienById(id: string) {
       this.loading = true;
       this.error = null;
+
       try {
-        const response = await axiosInstance.get<ApiResponse<Docgia>>(`/docgia/${id}`);
+        const response = await axiosInstance.get<ApiResponse<NhanVien>>(`/nhanvien/${id}`);
         this.selectedItem = response.data.data;
       } catch (error: any) {
-        this.error = error.response?.data?.message || `Failed to fetch docgia with ID: ${id}`;
+        this.error = error.response?.data?.message || `Failed to fetch NhanVien with ID: ${id}`;
         console.error(error);
       } finally {
         this.loading = false;
       }
     },
-    async createDocgia(newDocgia: DocGiaSignUp) {
+
+    // Create a new NhanVien
+    async createNhanVien(newNhanVien: NhanVienSignUp) {
       this.loading = true;
       this.error = null;
+
       try {
-        const response = await axiosInstance.post<ApiResponse<Docgia>>(
-          "/auth/admin-create-user",
-          newDocgia
+        const response = await axiosInstance.post<ApiResponse<NhanVien>>(
+          "/auth/admin-signup",
+          newNhanVien
         );
         this.items.push(response.data.data);
       } catch (error: any) {
-        this.error = error.response?.data?.message || "Failed to create new docgia";
+        this.error = error.response?.data?.message || "Failed to create new NhanVien";
         console.error(error);
       } finally {
         this.loading = false;
       }
     },
-    async updateDocgia(id: string, updatedDocgia: Partial<DocGiaSignUp>) {
+
+    // Update a NhanVien by ID
+    async updateNhanVien(id: string, updatedNhanVien: Partial<NhanVienSignUp>) {
       this.loading = true;
       this.error = null;
 
-      const {updateAt, createAt, deleted, MaDocGia, username, ...docgia} = updatedDocgia;
-
+      const {updateAt, createAt, deleted, MSNV, username, ...toUpdate} = updatedNhanVien;
       try {
-        return await axiosInstance.put<ApiResponse<Docgia>>(`/docgia/${id}`, docgia);
+        return await axiosInstance.put<ApiResponse<NhanVien>>(`/nhanvien/${id}`, toUpdate);
       } catch (error: any) {
-        this.error = error.response?.data?.message || `Failed to update docgia with ID: ${id}`;
-        console.error(error);
+        this.error = error.response?.data?.message || `Failed to update NhanVien with ID: ${id}`;
       } finally {
         this.loading = false;
       }
     },
-    async deleteDocgia(id: string) {
+
+    // Delete a NhanVien by ID
+    async deleteNhanVien(id: string) {
       this.loading = true;
       this.error = null;
+
       try {
-        await axiosInstance.patch<ApiResponse<null>>(`/docgia/${id}`);
-        this.items = this.items.filter((docgia) => docgia.MaDocGia !== id);
+        await axiosInstance.patch<ApiResponse<null>>(`/nhanvien/${id}`);
+        this.items = this.items.filter((NhanVien) => NhanVien.MSNV !== id);
       } catch (error: any) {
-        this.error = error.response?.data?.message || `Failed to delete docgia with ID: ${id}`;
+        this.error = error.response?.data?.message || `Failed to delete NhanVien with ID: ${id}`;
+        console.error(error);
       } finally {
         this.loading = false;
       }
     },
 
     // Methods to handle local state
-    setDocgias(data: Docgia[]) {
+    setNhanViens(data: NhanVien[]) {
       this.items = data;
     },
-    selectDocgia(docgia: Docgia) {
-      this.selectedItem = docgia;
+
+    selectNhanVien(NhanVien: NhanVien) {
+      this.selectedItem = NhanVien;
     },
-    clearSelectedDocgia() {
+
+    clearSelectedNhanVien() {
       this.selectedItem = null;
     },
     setSort(sortBy: string, sortOrder: string) {
@@ -158,9 +173,10 @@ export const useDocgiaStore = defineStore("docgia", {
       this.searchBy = searchBy;
     },
   },
+
   getters: {
-    selectedDocgia: (state) => state.selectedItem,
-    allDocgias: (state) => state.items,
-    docgiaById: (state) => (id: string) => state.items.find((docgia) => docgia.MaDocGia === id),
+    selectedNhanVien: (state) => state.selectedItem,
+    allNhanViens: (state) => state.items,
+    NhanVienById: (state) => (id: string) => state.items.find((NhanVien) => NhanVien.MSNV === id),
   },
 });

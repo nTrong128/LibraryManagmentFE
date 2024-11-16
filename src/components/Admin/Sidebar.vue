@@ -37,7 +37,7 @@ const navItems = [
 ]
 
 
-const isCollapsed = ref(false)
+const isCollapsed = ref(true)
 
 const toggleSidebar = () => {
     isCollapsed.value = !isCollapsed.value
@@ -57,7 +57,7 @@ const onSubmit = async () => {
 </script>
 
 <template>
-    <aside class=" flex flex-col h-screen transition-all duration-100 ease-in-out" :class="{ 'w-64': !isCollapsed, 'w-20': isCollapsed }">
+    <aside class=" flex flex-col h-screen transition-all duration-100 ease-in-out" :class="{ 'w-72': !isCollapsed, 'w-20': isCollapsed }">
         <div class="flex items-center justify-between p-4">
             <h1 class="text-xl font-bold" v-if="!isCollapsed">Hệ thống quản lý</h1>
             <Button variant="ghost" size="icon" @click="toggleSidebar">
@@ -116,11 +116,10 @@ const onSubmit = async () => {
                                 <div class="">
                                     <p class="font-semibold">
                                         {{ user.personalInfo?.HoTenNV }}
-                                        {{ user.user?.username }}
                                     </p>
-                                    <p class="text-sm">
+                                    <!-- <p class="text-sm">
                                         {{ user.user?.email }}
-                                    </p>
+                                    </p> -->
                                 </div>
                                 <div>
                                     <ChevronsUpDown class="h-5 w-h-5" />

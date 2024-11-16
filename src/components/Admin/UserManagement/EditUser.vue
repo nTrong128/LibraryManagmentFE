@@ -10,41 +10,48 @@
             <form @submit.prevent="handleSubmit">
                 <div class="space-y-4">
                     <div class="grid grid-cols-5 items-center gap-4">
-                        <Label for="work role" class="text-right">Chức vụ</Label>
-                        <Input id="work role" v-model="editedNhanVien.ChucVu" autocomplete="work" class="col-span-4" required />
-                    </div>
-                    <div class="grid grid-cols-5 items-center gap-4">
-                        <Label for="name" class="text-right">Họ và tên</Label>
-                        <Input id="name" v-model="editedNhanVien.HoTenNV" autocomplete="name" class="col-span-4" required />
-                    </div>
-                    <div class="grid grid-cols-5 items-center gap-4">
-                        <Label for="email" class="text-right">Email</Label>
-                        <Input id="email" v-model="editedNhanVien.email" autocomplete="email" class="col-span-4" required />
+                        <Label for="name" class="text-right">Tên đọc giả</Label>
+                        <Input id="name" v-model="editedDocGia.HoTen" autocomplete="name" class="col-span-4" required />
                     </div>
                     <div class="grid grid-cols-5 items-center gap-4">
                         <Label for="tel" class="text-right">Số điện thoại</Label>
-                        <Input id="tel" v-model="editedNhanVien.SoDienThoai" autocomplete="tel" class="col-span-4" required />
+                        <Input id="tel" v-model="editedDocGia.DienThoai" autocomplete="tel" class="col-span-4" required />
+                    </div>
+                    <div class="grid grid-cols-5 items-center gap-4">
+                        <Label for="email" class="text-right">Email</Label>
+                        <Input id="email" v-model="editedDocGia.email" autocomplete="email" class="col-span-4" required />
                     </div>
                     <div class="grid grid-cols-5 items-center gap-4">
                         <Label for="address" class="text-right">Địa chỉ</Label>
-                        <Input id="address" v-model="editedNhanVien.DiaChi" autocomplete="address" class="col-span-4" required />
+                        <Input id="address" v-model="editedDocGia.DiaChi" autocomplete="address" class="col-span-4" required />
                     </div>
                     <div class="grid grid-cols-5 items-center gap-4">
-                        <Label for="account role" class="text-right">Loại tài khoản</Label>
-                        <Select name="account role" v-model="editedNhanVien.role" required>
+                        <Label for="dob" class="text-right">Ngày sinh</Label>
+                        <DatePicker label="Chọn ngày" placeholder="Ngày/Tháng/Năm" class="col-span-4" v-model="editedDocGia.NgaySinh" required />
+                    </div>
+                    <div class="grid grid-cols-5 items-center gap-4">
+                        <Label for="account role" class="text-right">Giới tính</Label>
+                        <Select name="account role" v-model="editedDocGia.Phai" required>
                             <SelectTrigger id="publisher" class="col-span-4">
-                                <SelectValue placeholder="Chọn loại tài khoản" />
+                                <SelectValue placeholder="Chọn giới tính" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem v-for="role in Role" :key="role" :value="role">
-                                    {{ role }}
+                                <SelectItem :value="Gender.MALE">
+                                    Nam
+                                </SelectItem>
+                                <SelectItem :value="Gender.FEMALE">
+                                    Nữ
+                                </SelectItem>
+                                <SelectItem :value="Gender.OTHER">
+                                    Khác
                                 </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
+
                 </div>
                 <DialogFooter>
-                    <Button type="submit" :disabled="loading" class="bg-green-500 hover:bg-green-700">
+                    <Button type="submit" :disabled="loading" class="bg-green-500 mt-4 hover:bg-green-700">
                         {{ loading ? 'Đang lưu thay đổi ...' : 'Cập nhật' }}
                     </Button>
                 </DialogFooter>
@@ -60,12 +67,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useNhanVienStore } from '@/stores/nhanvienStore'
-import { Role, type NhanVien } from '@/types/models'
+import { useDocgiaStore } from '@/stores/docgiaStore'
+import { type Docgia, Gender } from '@/types/models'
 import { useToast } from '@/components/ui/toast'
+import { convertToISODateTime } from '@/utils/dateTime'
 
-const nhanvienStore = useNhanVienStore()
-const selectedNhanVien = computed(() => nhanvienStore.selectedItem)
+import DatePicker from "@/components/ui/DatePicker.vue"
+
+
+const docGiaStore = useDocgiaStore()
+const selectedDocGia = computed(() => docGiaStore.selectedItem)
 const { toast } = useToast()
 
 
@@ -75,27 +86,31 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     (e: 'update:isOpen', value: boolean): void
-    (e: 'save', nhanvien: NhanVien): void
+    (e: 'save', nhanvien: Docgia): void
 }>()
 
-const loading = computed(() => nhanvienStore.loading)
+const loading = computed(() => docGiaStore.loading)
 
-const editedNhanVien = ref({} as NhanVien)
-const error = ref(nhanvienStore.error)
+const editedDocGia = ref({} as Docgia)
+const error = ref(docGiaStore.error)
 
 
-watch(() => selectedNhanVien.value, (newValue) => {
+
+
+watch(() => selectedDocGia.value, (newValue) => {
     if (newValue) {
-        editedNhanVien.value = { ...newValue }
+        editedDocGia.value = { ...newValue }
     }
 }, { immediate: true })
 
 const handleSubmit = async () => {
-    if (nhanvienStore.loading) return
+    if (docGiaStore.loading) return
     error.value = ''
-
+    if (editedDocGia.value.NgaySinh) {
+        editedDocGia.value.NgaySinh = convertToISODateTime(new Date(editedDocGia.value.NgaySinh))
+    }
     try {
-        const result = await nhanvienStore.updateNhanVien(editedNhanVien.value.MSNV, { ...editedNhanVien.value })
+        const result = await docGiaStore.updateDocgia(editedDocGia.value.MaDocGia, { ...editedDocGia.value })
         if (result?.data.data) {
             toast({
                 title: "Thành công",
@@ -121,13 +136,16 @@ const handleSubmit = async () => {
 const handleOpenChange = (open: boolean) => {
     emit('update:isOpen', open)
     if (!open) {
-        editedNhanVien.value = {} as NhanVien
+        editedDocGia.value = {} as Docgia
         error.value = ''
-        nhanvienStore.clearSelectedNhanVien()
+        docGiaStore.clearSelectedDocgia()
     }
 }
 
 const refreshNhanViens = async () => {
-    await nhanvienStore.fetchNhanViens()
+    await docGiaStore.fetchDocgia()
 }
+
+
+
 </script>

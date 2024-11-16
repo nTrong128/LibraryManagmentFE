@@ -18,7 +18,6 @@ const authStore = useAuthStore()
 
 async function onSubmit(values: { username: string; password: string }) {
     authStore.loading = true
-    console.log(values)
     await authStore.login(values)
     authStore.loading = false
 

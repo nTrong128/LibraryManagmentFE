@@ -26,7 +26,7 @@ const accountSchema = z.object({
 const personalSchema = z.object({
     HoTen: z.string().min(1, { message: 'Vui lòng nhập họ và tên.' }),
     email: z.string().email({ message: 'Vui lòng nhập email.' }),
-    SoDienThoai: z.string().min(1, { message: 'Vui lòng nhập số điện thoại.' }),
+    DienThoai: z.string().min(1, { message: 'Vui lòng nhập số điện thoại.' }),
     DiaChi: z.string().min(1, { message: 'Vui lòng nhập địa chỉ.' })
 })
 
@@ -82,7 +82,7 @@ const personalFieldConfig = {
             name: 'email',
         }
     },
-    SoDienThoai: {
+    DienThoai: {
         label: 'Số điện thoại',
         inputProps: {
             type: 'tel',
@@ -109,7 +109,7 @@ const formData = ref({
     rePassword: '',
     HoTen: '',
     email: '',
-    SoDienThoai: '',
+    DienThoai: '',
     DiaChi: '',
 })
 
@@ -121,7 +121,6 @@ const currentStep = ref(1)
 const nextStep = (values: {
     username: string
     password: string
-    rePassword: string
 }) => {
     Object.assign(formData.value, values) // Merge Step 1 values into formData
     currentStep.value += 1
@@ -137,7 +136,7 @@ const authStore = useAuthStore()
 async function onSubmit(values: {
     HoTen: string
     email: string
-    SoDienThoai: string
+    DienThoai: string
     DiaChi: string
 }) {
     Object.assign(formData.value, values) // Merge Step 2 values into formData

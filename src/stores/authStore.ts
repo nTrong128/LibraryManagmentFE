@@ -28,7 +28,7 @@ export const useAuthStore = defineStore("auth", {
       try {
         const user = await this.authenticate("/auth/login", credentials);
 
-        await this.loadPersonalInfo(user.docGiaId || user.nhanVienId!, user.role);
+        await this.loadPersonalInfo();
         this.redirectToHome(router);
       } catch (error) {
         this.handleError(error, "Tên đăng nhập hoặc mật khẩu không đúng!!!");
@@ -43,11 +43,46 @@ export const useAuthStore = defineStore("auth", {
 
       try {
         const user = await this.authenticate("/auth/signup", credentials);
-        await this.loadPersonalInfo(user.docGiaId!, user.role);
+        await this.loadPersonalInfo();
         this.redirectToHome(router);
       } catch (error: any) {
         this.error = error.response.data.message;
         this.handleError(error, "Có lỗi xảy ra khi đăng ký tài khoản!!!");
+      } finally {
+        this.setLoading(false);
+      }
+    },
+
+    async updateAccount(data: Partial<TaiKhoan>) {
+      this.setLoading(true);
+      this.clearError();
+
+      try {
+        const response = await axiosInstance.put<ApiResponse<TaiKhoan>>(
+          `/auth/update-account/${this.user?.id}`,
+          data
+        );
+        this.user = response.data.data;
+        await this.loadPersonalInfo();
+      } catch (error) {
+        this.handleError(error, "Có lỗi xảy ra khi cập nhật thông tin tài khoản!!!");
+      } finally {
+        this.setLoading(false);
+      }
+    },
+
+    async changePassword(data: {currentPassword: string; newPassword: string; rePassword: string}) {
+      this.setLoading(true);
+      this.clearError();
+
+      try {
+        await axiosInstance.put<ApiResponse<TaiKhoan>>(
+          `/auth/change-password/${this.user?.id}`,
+          data
+        );
+        this.error = "Đổi mật khẩu thành công!!!";
+      } catch (error) {
+        this.handleError(error, "Có lỗi xảy ra khi đổi mật khẩu!!!");
       } finally {
         this.setLoading(false);
       }
@@ -59,15 +94,19 @@ export const useAuthStore = defineStore("auth", {
       return this.user!;
     },
 
-    async loadPersonalInfo(id: string, role: Role) {
+    async loadPersonalInfo() {
       this.setLoading(true);
       this.clearError();
 
-      const endpoint = role === Role.DOCGIA ? `/docgia/${id}` : `/nhanvien/${id}`;
+      const role = this.user!.role;
+
       try {
-        const response = await axiosInstance.get<ApiResponse<Docgia | NhanVien>>(endpoint);
+        if (role === Role.DOCGIA) {
+          this.personalInfo = this.user!.docGia;
+        } else {
+          this.personalInfo = this.user!.nhanVien;
+        }
         this.role = role;
-        this.personalInfo = response.data.data;
       } catch (error) {
         this.handleError(error, "Có lỗi xảy ra khi tải thông tin cá nhân!!!");
       } finally {
@@ -82,7 +121,7 @@ export const useAuthStore = defineStore("auth", {
       try {
         const response = await axiosInstance.get<ApiResponse<TaiKhoan>>("/auth/check-auth");
         this.user = response.data.data;
-        await this.loadPersonalInfo(this.user.docGiaId || this.user.nhanVienId!, this.user.role);
+        await this.loadPersonalInfo();
       } catch (error) {
         this.clearUserData();
       } finally {
@@ -114,7 +153,7 @@ export const useAuthStore = defineStore("auth", {
     redirectToHome(router: any) {
       if (this.isDocGia) {
         router.push({path: "/"});
-      } else if (this.isNhanVien) {
+      } else if (this.isNhanVien || this.isAdmin) {
         router.push({path: "/dashboard"});
       }
     },
@@ -141,6 +180,7 @@ export const useAuthStore = defineStore("auth", {
     isAuthenticated: (state) => !!state.user,
     isDocGia: (state) => state.role === Role.DOCGIA,
     isNhanVien: (state) => state.role === Role.NHANVIEN,
+    isAdmin: (state) => state.role === Role.ADMIN,
     getPersonalInfo: (state) => state.personalInfo,
   },
 });

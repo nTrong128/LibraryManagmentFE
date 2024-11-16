@@ -113,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -253,4 +253,9 @@ onMounted(async () => {
   await bookStore.fetchBooks()
   await publisherStore.fetchAllNhaXuatBans()
 })
+
+onUnmounted(() => {
+  bookStore.cleanUp()
+})
+
 </script>
