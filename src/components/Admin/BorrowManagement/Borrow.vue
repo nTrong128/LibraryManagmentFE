@@ -9,12 +9,15 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLab
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import Spinner from '@/components/Spinner.vue'
 import Pagination from '@/components/Pagination.vue'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ArrowUpDown, ChevronDown, Search } from 'lucide-vue-next'
 import { mappingBorrowStatus } from '@/utils/mapping'
 import { BorrowStatus } from '@/types/models'
+import { useToast } from '@/components/ui/toast'
+
+const { toast } = useToast()
 
 const borrowStore = useBorrowStore()
 
@@ -45,9 +48,9 @@ const sortableColumns = [
 ]
 
 const sortBy = ref('NgayYeuCau')
-const sortOrder = ref<'asc' | 'desc'>('asc')
-const searchQuery = ref<string | string[]>('')
-const searchBy = ref('TenSach')
+const sortOrder = ref<'asc' | 'desc'>('desc')
+const searchQuery = ref<string>('')
+const searchBy = ref('')
 
 const startIndex = computed(() => (currentPage.value - 1) * pageSize.value + 1)
 const endIndex = computed(() => Math.min(currentPage.value * pageSize.value, totalItems.value))
@@ -74,8 +77,8 @@ const toggleSortOrder = async () => {
 
 const refreshBorrows = async () => {
     borrowStore.setSort(sortBy.value, sortOrder.value)
-    borrowStore.setSearch(Array.isArray(searchQuery.value) ? searchQuery.value.join(',') : searchQuery.value, searchBy.value)
-    await borrowStore.fetchBorrows()
+    borrowStore.setSearch(searchQuery.value, searchBy.value)
+    await borrowStore.fetchBorrows(currentPage.value)
 }
 
 const handleSearchInput = (event: Event) => {
@@ -140,6 +143,14 @@ const collectedBook = async (id: string) => {
 const returnedBook = async (id: string) => {
     await borrowStore.returnedBook(id)
     await refreshBorrows()
+}
+
+const sendRequestReturnBook = async (id: string) => {
+    await borrowStore.sendRequestReturnBook(id)
+    toast({
+        title: 'Thành công',
+        description: 'Gửi yêu cầu trả sách thành công',
+    })
 }
 
 
@@ -220,7 +231,7 @@ onMounted(async () => {
                 <Spinner class="h-8 w-8" />
             </div>
             <div v-else-if="totalItems === 0" class="my-40 flex justify-center">
-                <p class="text-lg text-gray-500">Chưa từng mượn sách</p>
+                <p class="text-lg text-gray-500">Không có</p>
             </div>
             <Table v-else>
                 <TableHeader>
@@ -245,6 +256,7 @@ onMounted(async () => {
                                 'bg-green-100 text-green-800': book.status === 'ACCEPTED',
                                 'bg-blue-100 text-blue-800': book.status === 'BORROWED',
                                 'bg-red-100 text-red-800': book.status === 'REJECTED',
+                                'bg-red-100 text-red-600': book.status === 'OVERDUE'
                             }">
                                 {{ mappingBorrowStatus(book.status) }}
                             </span>
@@ -259,6 +271,9 @@ onMounted(async () => {
 
                             <Button v-if="book.status === BorrowStatus.BORROWED" @click="returnedBook(book.MaMuon)" size="sm" class="bg-blue-500 dark:bg-blue-500 dark:text-white">Xác nhận đã trả
                                 sách</Button>
+                            <Button v-if="book.status === BorrowStatus.OVERDUE" @click="sendRequestReturnBook(book.MaMuon)" size="sm" class="bg-green-500 dark:bg-green-500 dark:text-white">Yêu cầu trả
+                                sách</Button>
+
                         </TableCell>
                     </TableRow>
                 </TableBody>

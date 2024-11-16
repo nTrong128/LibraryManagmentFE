@@ -37,7 +37,7 @@ export const useBorrowStore = defineStore("borrowBook Store", {
       this.search = "";
       this.searchBy = "";
       this.sortBy = "NgayYeuCau";
-      this.sortOrder = "asc";
+      this.sortOrder = "desc";
       this.error = null;
     },
     async fetchBorrows(page = 1, pageSize = 5) {
@@ -50,10 +50,10 @@ export const useBorrowStore = defineStore("borrowBook Store", {
         const params: Record<string, any> = {
           page: this.currentPage,
           pageSize: this.pageSize,
-          search: this.search,
+          search: this.search || undefined,
           sortBy: this.sortBy,
           sortOrder: this.sortOrder,
-          searchBy: this.searchBy,
+          searchBy: this.searchBy || undefined,
         };
 
         const response = await axiosInstance.get<ApiResponse<MuonSach[]>>("/muonsach", {
@@ -68,14 +68,6 @@ export const useBorrowStore = defineStore("borrowBook Store", {
         console.error(error);
       } finally {
         this.loading = false;
-      }
-    },
-    checkAndUpdateOverdueBorrows() {
-      const today = new Date().toISOString().split("T")[0];
-      for (const borrow of this.items) {
-        if (borrow.NgayTra < today && borrow.status !== BorrowStatus.RETURNED) {
-          borrow.status = BorrowStatus.OVERDUE;
-        }
       }
     },
 
@@ -99,11 +91,26 @@ export const useBorrowStore = defineStore("borrowBook Store", {
         );
 
         this.items = response.data.data;
-        this.checkAndUpdateOverdueBorrows();
         this.totalItems = response.data.meta?.totalItems || 0;
         this.totalPages = response.data.meta?.totalPages || 0;
       } catch (error: any) {
         this.error = error.response?.data?.message || "Có lỗi xảy ra khi tải dữ liệu!!!";
+        console.error(error);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async sendRequestReturnBook(id: string) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await axiosInstance.post<ApiResponse<null>>(
+          `/muonsach/${id}/request-return`
+        );
+        return response.data.message;
+      } catch (error: any) {
+        this.error = error.response?.data?.message || "Có lỗi xảy ra khi gửi yêu cầu trả sách!!!";
         console.error(error);
       } finally {
         this.loading = false;
