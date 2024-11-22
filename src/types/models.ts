@@ -4,6 +4,7 @@ export interface Docgia {
   email?: string;
   MaDocGia: string;
   HoTen: string;
+  HoTenNV?: string;
   NgaySinh?: string;
   DiaChi: string;
   Phai?: Gender;
@@ -12,6 +13,7 @@ export interface Docgia {
   updateAt: string;
   createAt: string;
   deleted: boolean;
+  TaiKhoan?: TaiKhoan;
 }
 
 export interface DocGiaSignUp {
@@ -33,6 +35,7 @@ export interface NhanVien {
   email: string;
   MSNV: string;
   HoTenNV: string;
+  HoTen?: string;
   Password: string;
   ChucVu: string;
   DiaChi: string;

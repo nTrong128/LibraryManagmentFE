@@ -66,7 +66,8 @@ export const useBookStore = defineStore("book", {
         this.totalItems = response.data.meta?.totalItems || 0;
         this.totalPages = response.data.meta?.totalPages || 0;
       } catch (error: any) {
-        this.error = error.response?.data?.message || "Có lỗi xảy ra khi tải dữ liệu!!!";
+        this.error =
+          error.response?.data?.message || "Có lỗi xảy ra khi tải dữ liệu!!!";
         console.error(error);
       } finally {
         // Simulate loading time for development, remove in production
@@ -80,10 +81,29 @@ export const useBookStore = defineStore("book", {
       this.loading = true;
       this.error = null;
       try {
-        const response = await axiosInstance.get<ApiResponse<Sach>>(`/sach/${id}`);
+        const response = await axiosInstance.get<ApiResponse<Sach>>(
+          `/sach/${id}`
+        );
         this.selectedItem = response.data.data;
       } catch (error: any) {
-        this.error = error.response?.data?.message || `Failed to fetch book with ID: ${id}`;
+        this.error =
+          error.response?.data?.message ||
+          `Failed to fetch book with ID: ${id}`;
+        console.error(error);
+      } finally {
+        this.loading = false;
+      }
+    },
+    async fetchRandomBooks() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await axiosInstance.get<ApiResponse<Sach[]>>(
+          "/sach/random"
+        );
+        this.items = response.data.data;
+      } catch (error: any) {
+        this.error = error.response?.data?.message || "Failed to fetch book ";
         console.error(error);
       } finally {
         this.loading = false;
@@ -115,7 +135,9 @@ export const useBookStore = defineStore("book", {
         }
       } catch (error: any) {
         console.error("Error uploading the file:", error);
-        throw new Error(error.response?.data?.message || "Failed to upload image");
+        throw new Error(
+          error.response?.data?.message || "Failed to upload image"
+        );
       }
     },
 
@@ -132,11 +154,15 @@ export const useBookStore = defineStore("book", {
           console.log("Uploaded image URL:", imageUrl);
           newBook.image = imageUrl;
         }
-        const response = await axiosInstance.post<ApiResponse<Sach>>("/sach", newBook);
+        const response = await axiosInstance.post<ApiResponse<Sach>>(
+          "/sach",
+          newBook
+        );
         this.items.push(response.data.data);
         return response.data.data;
       } catch (error: any) {
-        this.error = error.response?.data?.message || "Failed to create new book";
+        this.error =
+          error.response?.data?.message || "Failed to create new book";
         console.error(error);
         throw error;
       } finally {
@@ -155,14 +181,26 @@ export const useBookStore = defineStore("book", {
           updatedBook.image = imageUrl;
         }
 
-        const {MaSach, updateAt, createAt, deleted, NhaXuatBan, ...bookToUpdate} = updatedBook;
-        const response = await axiosInstance.put<ApiResponse<Sach>>(`/sach/${id}`, bookToUpdate);
+        const {
+          MaSach,
+          updateAt,
+          createAt,
+          deleted,
+          NhaXuatBan,
+          ...bookToUpdate
+        } = updatedBook;
+        const response = await axiosInstance.put<ApiResponse<Sach>>(
+          `/sach/${id}`,
+          bookToUpdate
+        );
         const index = this.items.findIndex((book) => book.MaSach === id);
         if (index !== -1) {
           this.items[index] = response.data.data;
         }
       } catch (error: any) {
-        this.error = error.response?.data?.message || `Failed to update book with ID: ${id}`;
+        this.error =
+          error.response?.data?.message ||
+          `Failed to update book with ID: ${id}`;
         console.log(error);
       } finally {
         this.loading = false;
@@ -178,7 +216,8 @@ export const useBookStore = defineStore("book", {
         this.items = this.items.filter((book) => book.MaSach !== MaSach);
       } catch (error: any) {
         this.error =
-          error.response?.data?.message || `Failed to delete book with MaSach: ${MaSach}`;
+          error.response?.data?.message ||
+          `Failed to delete book with MaSach: ${MaSach}`;
         console.log({MaSach: MaSach, error: error});
       } finally {
         this.loading = false;
@@ -210,6 +249,7 @@ export const useBookStore = defineStore("book", {
   getters: {
     selectedBook: (state) => state.selectedItem,
     allBooks: (state) => state.items,
-    bookById: (state) => (id: string) => state.items.find((book) => book.MaSach === id),
+    bookById: (state) => (id: string) =>
+      state.items.find((book) => book.MaSach === id),
   },
 });

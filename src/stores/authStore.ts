@@ -65,18 +65,25 @@ export const useAuthStore = defineStore("auth", {
         this.user = response.data.data;
         await this.loadPersonalInfo();
       } catch (error) {
-        this.handleError(error, "Có lỗi xảy ra khi cập nhật thông tin tài khoản!!!");
+        this.handleError(
+          error,
+          "Có lỗi xảy ra khi cập nhật thông tin tài khoản!!!"
+        );
       } finally {
         this.setLoading(false);
       }
     },
 
-    async changePassword(data: {currentPassword: string; newPassword: string; rePassword: string}) {
+    async changePassword(data: {
+      currentPassword: string;
+      newPassword: string;
+      rePassword: string;
+    }) {
       this.setLoading(true);
       this.clearError();
 
       try {
-        await axiosInstance.put<ApiResponse<TaiKhoan>>(
+        await axiosInstance.post<ApiResponse<TaiKhoan>>(
           `/auth/change-password/${this.user?.id}`,
           data
         );
@@ -88,8 +95,14 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    async authenticate(endpoint: string, credentials: {username: string; password: string}) {
-      const response = await axiosInstance.post<ApiResponse<TaiKhoan>>(endpoint, credentials);
+    async authenticate(
+      endpoint: string,
+      credentials: {username: string; password: string}
+    ) {
+      const response = await axiosInstance.post<ApiResponse<TaiKhoan>>(
+        endpoint,
+        credentials
+      );
       this.user = response.data.data;
       return this.user!;
     },
@@ -119,7 +132,9 @@ export const useAuthStore = defineStore("auth", {
       this.clearError();
 
       try {
-        const response = await axiosInstance.get<ApiResponse<TaiKhoan>>("/auth/check-auth");
+        const response = await axiosInstance.get<ApiResponse<TaiKhoan>>(
+          "/auth/check-auth"
+        );
         this.user = response.data.data;
         await this.loadPersonalInfo();
       } catch (error) {

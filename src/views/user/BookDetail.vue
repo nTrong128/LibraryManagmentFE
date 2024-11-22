@@ -78,7 +78,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'

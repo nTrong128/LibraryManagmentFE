@@ -10,11 +10,12 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import Spinner from '@/components/Spinner.vue'
 import Pagination from '@/components/Pagination.vue'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
+import BorrowDetails from './BorrowDetails.vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ArrowUpDown, ChevronDown, Search } from 'lucide-vue-next'
 import { mappingBorrowStatus } from '@/utils/mapping'
-import { BorrowStatus } from '@/types/models'
+import { BorrowStatus, type MuonSach } from '@/types/models'
 import { useToast } from '@/components/ui/toast'
 
 const { toast } = useToast()
@@ -50,8 +51,11 @@ const sortableColumns = [
 const sortBy = ref('NgayYeuCau')
 const sortOrder = ref<'asc' | 'desc'>('desc')
 const searchQuery = ref<string>('')
-const searchBy = ref('')
+const searchBy = ref('TenSach')
 
+const selectedBorrow = ref(borrowStore.selectedBorrow)
+
+const isDialogOpen = ref(false)
 const startIndex = computed(() => (currentPage.value - 1) * pageSize.value + 1)
 const endIndex = computed(() => Math.min(currentPage.value * pageSize.value, totalItems.value))
 
@@ -64,6 +68,11 @@ const getCurrentSortLabel = computed(() => {
     const currentSort = sortableColumns.find(column => column.key === sortBy.value)
     return currentSort ? currentSort.label : 'Ngày đăng ký'
 })
+
+const openDialog = (borrow: MuonSach) => {
+    selectedBorrow.value = borrow
+    isDialogOpen.value = true
+}
 
 const handleSortChange = async (newSortBy: string) => {
     sortBy.value = newSortBy
@@ -125,11 +134,14 @@ watch([searchQuery, searchBy], async () => {
 const acceptBorrow = async (id: string) => {
     await borrowStore.acceptBorrow(id)
     await refreshBorrows()
+    isDialogOpen.value = false
 }
 
 const rejectBorrow = async (id: string) => {
     await borrowStore.rejectBorrow(id)
     await refreshBorrows()
+    isDialogOpen.value = false
+
 }
 
 
@@ -137,12 +149,14 @@ const rejectBorrow = async (id: string) => {
 const collectedBook = async (id: string) => {
     await borrowStore.collectedBook(id)
     await refreshBorrows()
+    isDialogOpen.value = false
 }
 
 
 const returnedBook = async (id: string) => {
     await borrowStore.returnedBook(id)
     await refreshBorrows()
+    isDialogOpen.value = false
 }
 
 const sendRequestReturnBook = async (id: string) => {
@@ -151,6 +165,7 @@ const sendRequestReturnBook = async (id: string) => {
         title: 'Thành công',
         description: 'Gửi yêu cầu trả sách thành công',
     })
+    isDialogOpen.value = false
 }
 
 
@@ -242,38 +257,29 @@ onMounted(async () => {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    <TableRow v-for="(book, index) in borrows" :key="book.MaMuon">
+                    <TableRow v-for="(borrow, index) in borrows" :key="borrow.MaMuon">
                         <TableCell class="font-medium">{{ index + 1 }}</TableCell>
-                        <TableCell>{{ book.Sach.TenSach }}</TableCell>
-                        <TableCell>{{ book.Docgia.HoTen }}</TableCell>
-                        <TableCell>{{ formatDate(book.NgayYeuCau) }}</TableCell>
-                        <TableCell>{{ formatDate(book.NgayMuon) }}</TableCell>
-                        <TableCell>{{ formatDate(book.NgayTra) }}</TableCell>
-                        <TableCell>
+                        <TableCell>{{ borrow.Sach.TenSach }}</TableCell>
+                        <TableCell>{{ borrow.Docgia.HoTen }}</TableCell>
+                        <TableCell>{{ formatDate(borrow.NgayYeuCau) }}</TableCell>
+                        <TableCell>{{ formatDate(borrow.NgayMuon) }}</TableCell>
+                        <TableCell>{{ formatDate(borrow.NgayTra) }}</TableCell>
+                        <TableCell class="min-w-36">
                             <span :class="{
                                 'px-2 py-1 rounded-full text-xs font-semibold': true,
-                                'bg-yellow-100 text-yellow-800': book.status === 'PENDING',
-                                'bg-green-100 text-green-800': book.status === 'ACCEPTED',
-                                'bg-blue-100 text-blue-800': book.status === 'BORROWED',
-                                'bg-red-100 text-red-800': book.status === 'REJECTED',
-                                'bg-red-100 text-red-600': book.status === 'OVERDUE'
+                                'bg-yellow-100 text-yellow-800': borrow.status === 'PENDING',
+                                'bg-green-100 text-green-800': borrow.status === 'ACCEPTED',
+                                'bg-blue-100 text-blue-800': borrow.status === 'BORROWED',
+                                'bg-red-100 text-red-800': borrow.status === 'REJECTED',
+                                'bg-green-100 text-green-600': borrow.status === 'RETURNED',
+                                'bg-red-100 text-red-600': borrow.status === 'OVERDUE'
+
                             }">
-                                {{ mappingBorrowStatus(book.status) }}
+                                {{ mappingBorrowStatus(borrow.status) }}
                             </span>
                         </TableCell>
                         <TableCell>
-                            <div class="space-x-4" v-if="book.status === BorrowStatus.PENDING">
-                                <Button @click="rejectBorrow(book.MaMuon)" variant="destructive" size="sm">Từ chối</Button>
-                                <Button @click="acceptBorrow(book.MaMuon)" size="sm" class="bg-blue-500 dark:bg-blue-500 dark:text-white">Xác nhận</Button>
-                            </div>
-                            <Button v-if="book.status === BorrowStatus.ACCEPTED" @click="collectedBook(book.MaMuon)" size="sm" class="bg-blue-500 dark:bg-blue-500 dark:text-white">Xác nhận đã nhận
-                                sách</Button>
-
-                            <Button v-if="book.status === BorrowStatus.BORROWED" @click="returnedBook(book.MaMuon)" size="sm" class="bg-blue-500 dark:bg-blue-500 dark:text-white">Xác nhận đã trả
-                                sách</Button>
-                            <Button v-if="book.status === BorrowStatus.OVERDUE" @click="sendRequestReturnBook(book.MaMuon)" size="sm" class="bg-green-500 dark:bg-green-500 dark:text-white">Yêu cầu trả
-                                sách</Button>
-
+                            <Button @click="openDialog(borrow)" variant="outline" class="bg-blue-500 text-white" size="sm">Xem chi tiết</Button>
                         </TableCell>
                     </TableRow>
                 </TableBody>
@@ -286,4 +292,6 @@ onMounted(async () => {
             <Pagination v-if="totalPages > 1" :total-pages="totalPages" :current-page="currentPage" @change="changePage" />
         </CardFooter>
     </Card>
+    <BorrowDetails v-if="selectedBorrow" :isOpen="isDialogOpen" :book="selectedBorrow" @update:isOpen="isDialogOpen = $event" @rejectBorrow="rejectBorrow" @acceptBorrow="acceptBorrow"
+        @collectedBook="collectedBook" @returnedBook="returnedBook" @sendRequestReturnBook="sendRequestReturnBook" />
 </template>

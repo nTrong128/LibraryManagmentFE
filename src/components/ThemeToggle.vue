@@ -18,7 +18,7 @@ const buttonClass = computed(() => {
 <template>
     <Button variant="outline" @click="toggleTheme" :class="buttonClass">
 
-        <div class="flex">
+        <div class="flex items-center">
             <SunIcon :v-if="theme === 'dark'" class="transition-all duration-300" :class="theme === 'dark' ? 'hidden ' : ''" />
             <MoonIcon class="transition-all duration-300" :class="theme === 'dark' ? ' ' : ' hidden'" />
             <span v-if="props.showText" class="ml-2">{{ theme === 'dark' ? 'Giao diện sáng' : 'Giao diện tối' }}</span>

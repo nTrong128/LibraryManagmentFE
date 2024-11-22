@@ -135,6 +135,13 @@ const publisherStore = useNhaXuatBanStore()
 const { items: books, currentPage, totalItems, totalPages, pageSize } = storeToRefs(bookStore)
 const publishers = computed(() => publisherStore.allNhaXuatBans)
 
+const publisherMap = computed(() => {
+  return new Map(publishers.value.map(p => [p.MaNXB, p.TenNXB]))
+})
+
+const getPublisherName = (MaNXB: string) => {
+  return publisherMap.value.get(MaNXB) || 'Không rõ'
+}
 const isEditModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
 
@@ -198,10 +205,7 @@ const handleDeleteBook = async (bookId: string) => {
   await refreshBooks()
 }
 
-const getPublisherName = (MaNXB: string) => {
-  const publisher = publishers.value.find(p => p.MaNXB === MaNXB)
-  return publisher ? publisher.TenNXB : 'Không rõ'
-}
+
 
 const changePage = async (page: number) => {
   bookStore.currentPage = page

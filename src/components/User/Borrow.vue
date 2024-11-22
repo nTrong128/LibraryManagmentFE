@@ -11,12 +11,19 @@ import { type MuonSach, type Sach } from '@/types/models';
 import { useToast } from '@/components/ui/toast';
 import Error from "@/components/Error.vue";
 import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router';
 
 const { toast } = useToast();
-
+const router = useRouter();
 const bookStore = useBookStore();
 const borrowStore = useBorrowStore();
 const authStore = useAuthStore();
+
+const authenticated = computed(() => authStore.isAuthenticated);
+
+
+
+
 const dialogOpen = ref(false);
 const selectedBook = computed(() => bookStore.selectedItem);
 
@@ -32,6 +39,29 @@ const borrowDetails = ref({
 } as unknown as MuonSach);
 
 const handleSubmit = async () => {
+
+    if (authenticated.value && !authStore.isDocGia) {
+        toast({
+            variant: "destructive",
+            title: 'Lỗi',
+            description: 'Chỉ người dùng là độc giả mới có thể thực hiện chức năng này.',
+        });
+        return;
+    }
+
+
+    if (!authenticated.value) {
+        toast({
+            variant: "destructive",
+            title: 'Lỗi',
+            description: 'Vui lòng đăng nhập để thực hiện chức năng này.',
+        });
+
+        router.push({ path: '/login' });
+        return;
+    }
+
+
     error.value = '';
     try {
         if (selectedBook.value) {
@@ -39,12 +69,13 @@ const handleSubmit = async () => {
         } else {
             throw new Error('No book selected');
         }
-        const muonsach = await borrowStore.createBorrow(borrowDetails.value);
+        await borrowStore.createBorrow(borrowDetails.value);
         if (!borrowStore.error) {
             dialogOpen.value = false;
             toast({
                 title: 'Thành công',
                 description: 'Đăng ký mượn sách thành công, vui lòng chờ xác nhận từ thư viện.',
+                variant: 'success',
             });
         }
     } catch (err: any) {

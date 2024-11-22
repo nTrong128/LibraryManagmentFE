@@ -120,10 +120,10 @@ watch([searchQuery, searchBy], async () => {
 })
 
 
-const collectedBook = async (id: string) => {
-    await borrowStore.collectedBook(id)
-    await borrowStore.fetchBorrowsByUser(user!.MaDocGia, currentPage.value)
-}
+// const collectedBook = async (id: string) => {
+//     await borrowStore.collectedBook(id)
+//     await borrowStore.fetchBorrowsByUser(user!.MaDocGia, currentPage.value)
+// }
 
 
 onMounted(async () => {
@@ -137,7 +137,7 @@ onMounted(async () => {
     <Card>
         <CardHeader>
             <CardTitle class="flex justify-between items-center">
-                Danh sách đọc giả
+                Lịch sử mượn sách
             </CardTitle>
             <div class="mt-4 flex flex-wrap justify-start space-x-2 items-center">
                 <div class="flex-grow mb-2 sm:mb-0 sm:mr-2 flex space-x-2">
@@ -233,11 +233,11 @@ onMounted(async () => {
                                 {{ mappingBorrowStatus(book.status) }}
                             </span>
                         </TableCell>
-                        <TableCell>
+                        <!-- <TableCell>
                             <Button v-if="book.status === BorrowStatus.ACCEPTED" @click="collectedBook(book.MaMuon)" size="sm" class="bg-blue-500 dark:bg-blue-500 dark:text-white">Xác nhận đã nhận
                                 sách</Button>
 
-                        </TableCell>
+                        </TableCell> -->
                     </TableRow>
                 </TableBody>
             </Table>

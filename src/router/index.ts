@@ -13,6 +13,11 @@ const router = createRouter({
       meta: {requiresAuth: true, role: [Role.ADMIN, Role.NHANVIEN]},
       children: [
         {
+          path: "/profile",
+          name: "adminProfile",
+          component: () => import("@/views/admin/Profile.vue"),
+        },
+        {
           path: "/dashboard/",
           name: "dashboard",
           component: () => import("@/views/admin/DashBoard.vue"),
@@ -44,6 +49,7 @@ const router = createRouter({
         },
       ],
     },
+
     {
       path: "/",
       name: "userDashboard",
@@ -53,6 +59,11 @@ const router = createRouter({
           path: "/",
           name: "landingPage",
           component: () => import("@/views/Landing.vue"),
+        },
+        {
+          path: "/user/profile",
+          name: "userProfile",
+          component: () => import("@/views/user/Profile.vue"),
         },
         {
           path: "/books",
@@ -111,7 +122,9 @@ router.beforeEach(async (to, from, next) => {
   }
 
   if (
-    (to.path === "/login" || to.path === "/signup" || to.path === "/forgot-password") &&
+    (to.path === "/login" ||
+      to.path === "/signup" ||
+      to.path === "/forgot-password") &&
     authStore.isAuthenticated
   ) {
     if (authStore.isDocGia) {

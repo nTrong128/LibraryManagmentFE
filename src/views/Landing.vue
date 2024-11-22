@@ -1,46 +1,51 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { BookOpen, Search, Clock, Users } from 'lucide-vue-next'
-import landingHeader from '@/components/header/landingHeader.vue'
-import loggedInHeader from '@/components/header/loggedInHeader.vue'
-import { useAuthStore } from '@/stores/authStore'
+import { type Sach } from '@/types/models'
+import { useBookStore } from '@/stores/bookStore'
+import { useRouter } from 'vue-router'
 
 
-const searchQuery = ref('')
-
-const handleSearch = () => {
-    // Implement search functionality
-    console.log('Searching for:', searchQuery.value)
-    // router.push({ name: 'SearchResults', query: { q: searchQuery.value } })
+interface Book extends Sach {
+    _id: { $oid: string };
 }
 
-const featuredBooks = [
-    { id: 1, title: 'To Kill a Mockingbird', author: 'Harper Lee', cover: 'https://m.media-amazon.com/images/I/81aY1lxk+9L._AC_UF1000,1000_QL80_.jpg' },
-    { id: 2, title: '1984', author: 'George Orwell', cover: 'https://m.media-amazon.com/images/I/71rpa1-kyvL._AC_UF1000,1000_QL80_.jpg' },
-    { id: 3, title: 'Pride and Prejudice', author: 'Jane Austen', cover: 'https://m.media-amazon.com/images/I/81Scutrtj4L._UF1000,1000_QL80_.jpg' },
-    { id: 4, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', cover: 'https://m.media-amazon.com/images/I/51jPo0RDFUL._SL500_.jpg' },
-]
+const searchQuery = ref('')
+const router = useRouter()
 
-const authStore = useAuthStore()
+const handleSearch = () => {
+    if (!searchQuery.value) return
+    router.push({ name: 'browseBooks', query: { q: searchQuery.value }, })
+}
 
-const user = authStore.user
+const featuredBooks = computed<Book[]>(() => bookStore.items as Book[])
+const bookStore = useBookStore()
 
+const goToBookDetail = (id: string) => {
+    console.log('Navigating to book detail:', id)
+    router.push({ name: "BookDetail", params: { id } });
+};
+
+
+
+onMounted(async () => {
+    await bookStore.fetchRandomBooks()
+})
 </script>
 
 <template>
     <div class="min-h-screen bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-900 dark:to-gray-800">
         <main class="container mx-auto px-6 py-8">
             <section class="text-center mb-16">
-                <h1 class="text-4xl font-bold mb-4">Welcome to MyLibrary</h1>
-                <p class="text-xl mb-8">Discover, borrow, and enjoy a world of books at your fingertips.</p>
+                <h1 class="text-4xl font-bold mb-4">Chào mừng bạn đến với thư viện HEHE</h1>
+                <p class="text-xl mb-8">Khám phá, mượn và tận hưởng thế giới sách trong tầm tay bạn.</p>
                 <div class="flex justify-center">
                     <div class="relative w-full max-w-xl">
-                        <Input v-model="searchQuery" type="text" placeholder="Search for books..." class="pr-10" @keyup.enter="handleSearch" />
-                        <Button class="absolute right-0 top-0 bottom-0" @click="handleSearch">
+                        <Input v-model="searchQuery" type="text" placeholder="Nhập tên sách để tìm" class="pr-10" @keyup.enter="handleSearch" />
+                        <Button class="absolute right-0 top-0 bottom-0 bg-green-500 hover:bg-green-600" @click="handleSearch">
                             <Search class="h-4 w-4" />
                         </Button>
                     </div>
@@ -48,49 +53,50 @@ const user = authStore.user
             </section>
 
             <section class="mb-16">
-                <h2 class="text-2xl font-semibold mb-6">Featured Books</h2>
+                <h2 class="text-2xl font-semibold mb-6">Sách nổi bật</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    <Card v-for="book in featuredBooks" :key="book.id" class="overflow-hidden">
-                        <img :src="book.cover" :alt="book.title" class="w-full h-48 object-cover" />
+                    <Card v-for="book in featuredBooks" @click="goToBookDetail(book._id.$oid)" :key="book.MaSach" class="overflow-hidden">
+                        <img :src="book.image" :alt="book.TenSach" class="h-96 w-full object-cover transition-transform duration-300 ease-in-out hover:scale-110 mb-10" loading="lazy" />
                         <CardContent>
-                            <h3 class="font-semibold">{{ book.title }}</h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ book.author }}</p>
+                            <h3 class="font-semibold">{{ book.TenSach }}</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ book.NguonGoc }}</p>
                         </CardContent>
                     </Card>
                 </div>
             </section>
 
             <section class="mb-16">
-                <h2 class="text-2xl font-semibold mb-6">Why Choose MyLibrary?</h2>
+                <h2 class="text-2xl font-semibold mb-6 text-center">Tại sao chọn Thư viện HEHE?</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <Card>
                         <CardContent class="flex flex-col items-center text-center p-6">
                             <BookOpen class="h-12 w-12 text-green-600 dark:text-green-400 mb-4" />
-                            <h3 class="text-xl font-semibold mb-2">Vast Collection</h3>
-                            <p>Access thousands of books across various genres and topics.</p>
+                            <h3 class="text-xl font-semibold mb-2">Số lượng sách lớn</h3>
+                            <p>
+                                Truy cập hàng ngàn cuốn sách thuộc nhiều thể loại và chủ đề khác nhau.
+
+                            </p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent class="flex flex-col items-center text-center p-6">
                             <Clock class="h-12 w-12 text-green-600 dark:text-green-400 mb-4" />
-                            <h3 class="text-xl font-semibold mb-2">24/7 Access</h3>
-                            <p>Borrow and return books anytime, from anywhere.</p>
+                            <h3 class="text-xl font-semibold mb-2">Truy cập 24/7</h3>
+                            <p>
+                                Đăng ký mượn và trả sách mọi lúc, mọi nơi.
+                            </p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent class="flex flex-col items-center text-center p-6">
                             <Users class="h-12 w-12 text-green-600 dark:text-green-400 mb-4" />
-                            <h3 class="text-xl font-semibold mb-2">Community</h3>
-                            <p>Join book clubs, discussions, and literary events.</p>
+                            <h3 class="text-xl font-semibold mb-2">Cộng đồng to lớn</h3>
+                            <p>
+                                Giao lưu, chia sẻ và học hỏi từ cộng đồng đam mê sách.
+                            </p>
                         </CardContent>
                     </Card>
                 </div>
-            </section>
-
-            <section v-if="!authStore.isAuthenticated" class="text-center">
-                <h2 class="text-2xl font-semibold mb-4">Ready to Start Reading?</h2>
-                <p class="mb-6">Join MyLibrary today and unlock a world of knowledge and imagination.</p>
-                <router-link to="/signup"><Button size="lg">Sign Up Now</Button></router-link>
             </section>
         </main>
 

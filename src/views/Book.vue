@@ -86,10 +86,7 @@
                             </div>
                         </CardContent>
                         <CardFooter class="flex justify-end space-x-2">
-                            <!-- <Button variant="outline" size="sm" @click="">
-                                <CircleEllipsis class="h-4 w-4 mr-2" />
-                                Xem chi tiết
-                            </Button> -->
+
                         </CardFooter>
                     </Card>
                 </div>
@@ -105,19 +102,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu'
-import { CircleEllipsis, ChevronDown, ArrowUpDown, Search } from 'lucide-vue-next'
+import { ChevronDown, ArrowUpDown, Search } from 'lucide-vue-next'
 import { useBookStore } from '@/stores/bookStore'
 import { useNhaXuatBanStore } from '@/stores/nhaXuatBanStore'
 import { Input } from '@/components/ui/input'
 import Spinner from '@/components/Spinner.vue'
 import Pagination from '@/components/Pagination.vue'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
 const bookStore = useBookStore()
@@ -126,6 +123,12 @@ const { items: books, currentPage, totalItems, totalPages, pageSize } = storeToR
 const publishers = computed(() => publisherStore.allNhaXuatBans)
 const startIndex = computed(() => (currentPage.value - 1) * pageSize.value + 1)
 const endIndex = computed(() => Math.min(currentPage.value * pageSize.value, totalItems.value))
+
+
+const route = useRoute();
+
+
+
 
 const sortableColumns = [
     { key: 'TenSach', label: 'Tên sách' },
@@ -226,7 +229,14 @@ watch([searchQuery, searchBy], async () => {
 
 
 onMounted(async () => {
+    const query = route.query.q || '';
+    searchQuery.value = query.toString();
     await bookStore.fetchBooks()
     await publisherStore.fetchAllNhaXuatBans()
 })
+
+onUnmounted(() => {
+    bookStore.cleanUp()
+})
+
 </script>
