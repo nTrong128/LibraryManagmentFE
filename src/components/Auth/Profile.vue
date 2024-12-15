@@ -8,7 +8,7 @@
         </div>
 
         <AccountDialog v-model:open="isAccountDialogOpen" :user="user" @update="updateUser" />
-        <PersonalDialog v-model:open="isPersonalDialogOpen" :user="user" @update="updateUser" />
+        <PersonalDialog v-model:open="isPersonalDialogOpen" :user="personalInfo" @update="updateUser" />
     </div>
 </template>
 

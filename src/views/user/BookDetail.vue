@@ -15,7 +15,7 @@
                     <AlertCircle class="h-4 w-4" />
                     <AlertTitle>Error</AlertTitle>
                     <AlertDescription>
-                        Không tìm thấy sách
+                        Không tìm thấy trang này
                     </AlertDescription>
                 </Alert>
             </div>

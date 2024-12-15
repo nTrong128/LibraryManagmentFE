@@ -18,7 +18,7 @@ import StatisticsCard from '@/components/StatisticsCard.vue'
 import { AreaChart } from '@/components/ui/chart-area'
 
 const totalBooks = ref(1250)
-const totalMembers = ref(500)
+const totalMembers = ref(75)
 const borrowedBooks = ref(320)
 const data = [
     { name: 'Jan', total: Math.floor(Math.random() * 2000) + 500, predicted: Math.floor(Math.random() * 2000) + 500 },
